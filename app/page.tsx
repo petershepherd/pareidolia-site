@@ -375,8 +375,8 @@ function PareidoliaEyes() {
 function EasterEggFace() {
   const [show, setShow] = useState(false);
   useEffect(() => {
-    const t = setTimeout(() => setShow(true), 20000);
-    const t2 = setTimeout(() => setShow(false), 26000);
+    const t = setTimeout(() => setShow(true), 5000);
+    const t2 = setTimeout(() => setShow(false), 13000);
     return () => { clearTimeout(t); clearTimeout(t2); };
   }, []);
   if (!show) return null;
