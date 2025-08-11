@@ -1,4 +1,3 @@
-```tsx
 "use client";
 import * as React from "react";
 import { cn } from "@/lib/utils";
@@ -27,4 +26,3 @@ export function Button({ className, variant = "default", size = "md", asChild, .
   const cls = cn(base, variants[variant], sizes[size], className);
   return <button className={cls} {...props} />;
 }
-```
