@@ -28,7 +28,7 @@ export default function Page() {
     <div className="min-h-screen bg-neutral-950 text-neutral-100 selection:bg-cyan-500/40 selection:text-white">
       <AnimatedBackground />
       <Navbar />
-      <SecretCodeUnlock
+    <SecretTypeUnlock
   secret={TOKEN.contract}
   password="PAREIDOLIA-FOUND-YOU"  // <-- IDE ÍRD A VÉGSŐ JELSZÓT
 />
@@ -378,11 +378,25 @@ function PareidoliaEyes() {
 
 function EasterEggFace() {
   const [show, setShow] = useState(false);
-  useEffect(() => {
-    const t = setTimeout(() => setShow(true), 5000);
-    const t2 = setTimeout(() => setShow(false), 13000);
-    return () => { clearTimeout(t); clearTimeout(t2); };
-  }, []);
+useEffect(() => {
+  // időzített megjelenítés
+  const t = setTimeout(() => setShow(true), 15000);
+  const t2 = setTimeout(() => setShow(false), 20000);
+
+  // egyedi eseményre is reagáljon
+  const onEgg = () => {
+    setShow(true);
+    setTimeout(() => setShow(false), 10000);
+  };
+  window.addEventListener("pareidolia:egg", onEgg as EventListener);
+
+  return () => {
+    clearTimeout(t);
+    clearTimeout(t2);
+    window.removeEventListener("pareidolia:egg", onEgg as EventListener);
+  };
+}, []);
+
   if (!show) return null;
   return (
     <div className="pointer-events-none fixed inset-0 -z-0 flex items-center justify-center">
@@ -407,9 +421,9 @@ function DevTests() {
   );
 }
 
-function SecretCodeUnlock({
-  secret,            // a keresett szöveg (contract)
-  password = "PAREIDOLIA-FOUND-YOU", // IDE ÍRD A SAJÁT JELSZÓT, ha mást szeretnél
+function SecretTypeUnlock({
+  secret,
+  password = "PAREIDOLIA-FOUND-YOU", // <- IDE ÍRD A SAJÁT JELSZÓT
 }: {
   secret: string;
   password?: string;
@@ -417,58 +431,43 @@ function SecretCodeUnlock({
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  // a target legyen kisbetűs, szóközök nélkül
+  // Normalizált cél (kisbetű, szóköz nélkül)
   const target = secret.toLowerCase().replace(/\s+/g, "");
-  // gépelési puffer
-  const bufferRef = useRef("");
+  const idxRef = useRef(0); // hányadik karakterig jutottunk
 
   useEffect(() => {
-    // ha már megtalálta ebben a sessionben, ne zavarjuk
-    const done = sessionStorage.getItem("pareidolia:egg:done");
-    if (done) return;
+    // egy sessionben egyszer
+    if (sessionStorage.getItem("pareidolia:egg:done")) return;
 
     const onKey = (e: KeyboardEvent) => {
-      // csak a [a-z0-9] érdekel minket
-      const ch = e.key.length === 1 ? e.key.toLowerCase() : "";
-      if (!ch || !/[a-z0-9]/.test(ch)) return;
+      // csak 1 hosszú, alfanumerikus billentyűt figyelünk
+      if (e.key.length !== 1) return;
+      const ch = e.key.toLowerCase();
+      if (!/[a-z0-9]/.test(ch)) return;
 
-      const max = target.length;
-      let next = (bufferRef.current + ch).slice(-max);
-      bufferRef.current = next;
+      const i = idxRef.current;
+      const expected = target[i];
 
-      if (next.endsWith(target)) {
-        // siker!
-        sessionStorage.setItem("pareidolia:egg:done", "1");
-        setOpen(true);
-
-        // opcionális: indítsuk el a vizuális „arc” easter egget is
-        try {
-          window.dispatchEvent(new CustomEvent("pareidolia:egg"));
-        } catch {}
-      }
-    };
-
-    const onPaste = (e: ClipboardEvent) => {
-      const text = (e.clipboardData?.getData("text") || "").toLowerCase().replace(/\s+/g, "");
-      if (!text) return;
-      const max = target.length;
-      let next = (bufferRef.current + text).slice(-max);
-      bufferRef.current = next;
-      if (next.endsWith(target)) {
-        sessionStorage.setItem("pareidolia:egg:done", "1");
-        setOpen(true);
-        try {
-          window.dispatchEvent(new CustomEvent("pareidolia:egg"));
-        } catch {}
+      if (ch === expected) {
+        // jó karakter
+        idxRef.current = i + 1;
+        if (idxRef.current === target.length) {
+          // kész!
+          sessionStorage.setItem("pareidolia:egg:done", "1");
+          idxRef.current = 0;
+          setOpen(true);
+          try {
+            window.dispatchEvent(new CustomEvent("pareidolia:egg"));
+          } catch {}
+        }
+      } else {
+        // elütés: ha a mostani karakter a target első betűje, kezdjük 1-ről, különben 0
+        idxRef.current = ch === target[0] ? 1 : 0;
       }
     };
 
     window.addEventListener("keydown", onKey);
-    window.addEventListener("paste", onPaste);
-    return () => {
-      window.removeEventListener("keydown", onKey);
-      window.removeEventListener("paste", onPaste);
-    };
+    return () => window.removeEventListener("keydown", onKey);
   }, [target]);
 
   const copyPw = async () => {
@@ -484,7 +483,6 @@ function SecretCodeUnlock({
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-      {/* háttérfátyol */}
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setOpen(false)} />
       <Card className="relative z-[61] max-w-md w-full border-white/10 bg-gradient-to-br from-cyan-500/10 via-fuchsia-500/10 to-amber-400/10">
         <CardHeader>
@@ -492,20 +490,19 @@ function SecretCodeUnlock({
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-neutral-300">
-            You typed the full contract address. Here’s your password — post it in the Telegram chat to claim your prize:
+            You typed the full contract address. Post this password in the Telegram chat to claim your prize:
           </p>
           <div className="flex items-center gap-2">
             <code className="block flex-1 rounded-xl bg-black/40 px-3 py-2 text-sm">{password}</code>
             <Button variant="outline" className="rounded-2xl border-white/20 text-white hover:bg-white/10" onClick={copyPw}>
-              {copied ? <> <Check className="mr-2 h-4 w-4" /> Copied</> : <> <Copy className="mr-2 h-4 w-4" /> Copy</>}
+              {copied ? (<><Check className="mr-2 h-4 w-4" /> Copied</>) : (<><Copy className="mr-2 h-4 w-4" /> Copy</>)}
             </Button>
           </div>
           <p className="text-xs text-neutral-400">
-            (Case-insensitive match • Works via typing or pasting • One-time per session)
+            (Type-only • Case-insensitive • One-time per session)
           </p>
         </CardContent>
       </Card>
     </div>
   );
 }
-
