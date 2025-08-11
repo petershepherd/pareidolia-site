@@ -103,6 +103,7 @@ function Hero() {
         <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-center">See What You Want to See</h1>
       </motion.div>
       <p className="mx-auto mt-4 max-w-2xl text-center text-neutral-300">The meme coin that turns your brain’s pattern‑recognition glitch into a movement.</p>
+      <p className="mx-auto mt-4 max-w-2xl text-center text-neutral-300">Could you find the 🐰🥚?</p>
       <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
         <Button asChild size="lg" className="rounded-2xl"><a href={LINKS.dex} target="_blank" rel="noreferrer">Buy Token <ExternalLink className="ml-2 h-4 w-4" /></a></Button>
         <Button asChild variant="secondary" size="lg" className="rounded-2xl"><a href={LINKS.telegram} target="_blank" rel="noreferrer">Join Telegram <Send className="ml-2 h-4 w-4" /></a></Button>
