@@ -28,6 +28,10 @@ export default function Page() {
     <div className="min-h-screen bg-neutral-950 text-neutral-100 selection:bg-cyan-500/40 selection:text-white">
       <AnimatedBackground />
       <Navbar />
+      <SecretCodeUnlock
+  secret={TOKEN.contract}
+  password="PAREIDOLIA-FOUND-YOU"  // <-- IDE ÍRD A VÉGSŐ JELSZÓT
+/>
       <main className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <Hero />
         <WhatIs />
@@ -402,3 +406,106 @@ function DevTests() {
     </section>
   );
 }
+
+function SecretCodeUnlock({
+  secret,            // a keresett szöveg (contract)
+  password = "PAREIDOLIA-FOUND-YOU", // IDE ÍRD A SAJÁT JELSZÓT, ha mást szeretnél
+}: {
+  secret: string;
+  password?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  // a target legyen kisbetűs, szóközök nélkül
+  const target = secret.toLowerCase().replace(/\s+/g, "");
+  // gépelési puffer
+  const bufferRef = useRef("");
+
+  useEffect(() => {
+    // ha már megtalálta ebben a sessionben, ne zavarjuk
+    const done = sessionStorage.getItem("pareidolia:egg:done");
+    if (done) return;
+
+    const onKey = (e: KeyboardEvent) => {
+      // csak a [a-z0-9] érdekel minket
+      const ch = e.key.length === 1 ? e.key.toLowerCase() : "";
+      if (!ch || !/[a-z0-9]/.test(ch)) return;
+
+      const max = target.length;
+      let next = (bufferRef.current + ch).slice(-max);
+      bufferRef.current = next;
+
+      if (next.endsWith(target)) {
+        // siker!
+        sessionStorage.setItem("pareidolia:egg:done", "1");
+        setOpen(true);
+
+        // opcionális: indítsuk el a vizuális „arc” easter egget is
+        try {
+          window.dispatchEvent(new CustomEvent("pareidolia:egg"));
+        } catch {}
+      }
+    };
+
+    const onPaste = (e: ClipboardEvent) => {
+      const text = (e.clipboardData?.getData("text") || "").toLowerCase().replace(/\s+/g, "");
+      if (!text) return;
+      const max = target.length;
+      let next = (bufferRef.current + text).slice(-max);
+      bufferRef.current = next;
+      if (next.endsWith(target)) {
+        sessionStorage.setItem("pareidolia:egg:done", "1");
+        setOpen(true);
+        try {
+          window.dispatchEvent(new CustomEvent("pareidolia:egg"));
+        } catch {}
+      }
+    };
+
+    window.addEventListener("keydown", onKey);
+    window.addEventListener("paste", onPaste);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener("paste", onPaste);
+    };
+  }, [target]);
+
+  const copyPw = async () => {
+    try {
+      const okModern = await tryClipboardWrite(password);
+      if (okModern) { setCopied(true); setTimeout(() => setCopied(false), 1200); return; }
+    } catch {}
+    const okLegacy = execCommandFallback(password);
+    if (okLegacy) { setCopied(true); setTimeout(() => setCopied(false), 1200); return; }
+  };
+
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+      {/* háttérfátyol */}
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setOpen(false)} />
+      <Card className="relative z-[61] max-w-md w-full border-white/10 bg-gradient-to-br from-cyan-500/10 via-fuchsia-500/10 to-amber-400/10">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">🎉 Secret Unlocked</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-neutral-300">
+            You typed the full contract address. Here’s your password — post it in the Telegram chat to claim your prize:
+          </p>
+          <div className="flex items-center gap-2">
+            <code className="block flex-1 rounded-xl bg-black/40 px-3 py-2 text-sm">{password}</code>
+            <Button variant="outline" className="rounded-2xl border-white/20 text-white hover:bg-white/10" onClick={copyPw}>
+              {copied ? <> <Check className="mr-2 h-4 w-4" /> Copied</> : <> <Copy className="mr-2 h-4 w-4" /> Copy</>}
+            </Button>
+          </div>
+          <p className="text-xs text-neutral-400">
+            (Case-insensitive match • Works via typing or pasting • One-time per session)
+          </p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
