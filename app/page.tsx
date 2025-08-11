@@ -1,4 +1,3 @@
-```tsx
 "use client";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { motion, useMotionValue, useTransform } from "framer-motion";
@@ -403,4 +402,3 @@ function DevTests() {
     </section>
   );
 }
-```
