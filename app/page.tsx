@@ -386,7 +386,7 @@ useEffect(() => {
   // egyedi eseményre is reagáljon
   const onEgg = () => {
     setShow(true);
-    setTimeout(() => setShow(false), 10000);
+    setTimeout(() => setShow(false), 100000);
   };
   window.addEventListener("pareidolia:egg", onEgg as EventListener);
 
