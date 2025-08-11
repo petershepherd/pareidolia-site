@@ -259,8 +259,10 @@ function WhyNow() {
       <div className="grid items-start gap-8 md:grid-cols-2">
         <div className="space-y-4">
           <h2 className="text-2xl sm:text-3xl font-bold">Why now?</h2>
-          <p className="text-neutral-300">Recently, Pasquale D’Silva — a rising artist and the mind behind the $SPARK token (<span className="whitespace-nowrap">~$50M market cap</span>) — posted about Pareidolia. The topic is hot, relatable, and ripe for viral growth. PAREIDOLIA blends psychology, art, and crypto hype into one memetic wave.</p>
-          <ul className="list-disc pl-5 text-neutral-300 space-y-2">
+<p className="text-neutral-300">
+  Pareidolia isn’t just a brain quirk — it’s a universal glitch turned cultural engine. In a world of noise, we give people something to <em>see</em>. Part art experiment, part social phenomenon, part crypto wildfire — PAREIDOLIA is built to spread faster than the patterns you imagine.
+</p>
+<ul className="list-disc pl-5 text-neutral-300 space-y-2">
             <li>Culturally familiar: everyone experiences it</li>
             <li>Emotionally sticky: sparks strong reactions</li>
             <li>Infinitely memeable visuals & prompts</li>
