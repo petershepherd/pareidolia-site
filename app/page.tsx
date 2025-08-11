@@ -8,17 +8,17 @@ import { Input } from "@/components/ui/input";
 import { Copy, Check, ExternalLink, Twitter, Send, Link as LinkIcon } from "lucide-react";
 
 const LINKS = {
-  telegram: "https://t.me/+1beBi38OMY0wOGJk",
+  telegram: "https://t.me/pareidoliaportal",
   xCommunity: "https://x.com/i/communities/1954506369618391171",
   dex: "https://letsbonk.fun/token/BXrwn2UWEeUAKghP8hatpW4i5AMchdscTzchMYE4bonk",
-  explorer: "#",
+  explorer: "https://solscan.io/token/BXrwn2UWEeUAKghP8hatpW4i5AMchdscTzchMYE4bonk",
 };
 
 const TOKEN = {
   chain: "Solana",
   ticker: "PAREIDOLIA",
   contract: "BXrwn2UWEeUAKghP8hatpW4i5AMchdscTzchMYE4bonk",
-  supply: "–",
+  supply: "1 Trillion",
 };
 
 const __SHOW_TESTS__ = false;
