@@ -309,49 +309,31 @@ export default function MemeToolPage() {
             </div>
 
             {/* Watermark */}
-            <div className="space-y-2">
-              <label className="text-xs text-neutral-400 flex items-center gap-2">
-                <Droplets className="h-4 w-4" /> Watermark
-              </label>
-              <div className="flex items-center gap-2">
-                <Button
-                  type="button"
-                  variant={wmEnabled ? "secondary" : "outline"}
-                  onClick={() => setWmEnabled((v) => !v)}
-                  className="rounded-2xl"
-                >
-                  {wmEnabled ? "Enabled" : "Disabled"}
-                </Button>
-                <Badge className="rounded-full">{wmText}</Badge>
-              </div>
-              <Input value={wmText} onChange={(e) => setWmText(e.target.value)} />
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs text-neutral-500">Opacity ({wmOpacity.toFixed(2)})</label>
-                  <input
-                    type="range"
-                    min={0}
-                    max={1}
-                    step={0.01}
-                    value={wmOpacity}
-                    onChange={(e) => setWmOpacity(Number(e.target.value))}
-                    className="w-full"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs text-neutral-500">Scale ({wmScale.toFixed(2)})</label>
-                  <input
-                    type="range"
-                    min={0.5}
-                    max={2}
-                    step={0.05}
-                    value={wmScale}
-                    onChange={(e) => setWmScale(Number(e.target.value))}
-                    className="w-full"
-                  />
-                </div>
-              </div>
-            </div>
+            <div>
+  <label className="text-xs text-neutral-500">Opacity ({wmOpacity.toFixed(2)})</label>
+  <input
+    type="range"
+    min={0.5} // 0 helyett 0.5
+    max={1}
+    step={0.01}
+    value={wmOpacity}
+    onChange={(e) => setWmOpacity(Number(e.target.value))}
+    className="w-full"
+  />
+</div>
+<div>
+  <label className="text-xs text-neutral-500">Scale ({wmScale.toFixed(2)})</label>
+  <input
+    type="range"
+    min={0.5} // 0.5 marad
+    max={2}
+    step={0.05}
+    value={wmScale}
+    onChange={(e) => setWmScale(Number(e.target.value))}
+    className="w-full"
+  />
+</div>
+
 
             <div className="flex items-center justify-end gap-2 pt-2">
               <Button onClick={drawPreview} variant="outline" className="rounded-2xl">
