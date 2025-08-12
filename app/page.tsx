@@ -80,6 +80,7 @@ function Navbar() {
           <NavLink href="#why">Why now</NavLink>
           <NavLink href="#roadmap">Roadmap</NavLink>
           <NavLink href="#join">Join</NavLink>
+          <NavLink href="/meme">Meme tool</NavLink>
         </nav>
         <div className="flex items-center gap-2">
           <Button asChild variant="secondary" className="rounded-2xl">
