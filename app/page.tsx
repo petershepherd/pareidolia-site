@@ -24,11 +24,6 @@ const TOKEN = {
 const __SHOW_TESTS__ = false;
 
 export default function Page() {
-  return (
-    <div className="min-h-screen bg-neutral-950 text-neutral-100 selection:bg-cyan-500/40 selection:text-white">
-      <AnimatedBackground />
-      <Navbar />
-export default function Page() {
   const [hintOpen, setHintOpen] = useState(false);
 
   return (
@@ -36,7 +31,13 @@ export default function Page() {
       <AnimatedBackground />
       <Navbar />
 
-      {/* Mount the modal once */}
+      {/* Secret typing unlock (contract typing reward) */}
+      <SecretTypeUnlock
+        secret={TOKEN.contract}
+        password="PAREIDOLIA-FOUND-YOU" // <- ide írhatod a végső jelszót
+      />
+
+      {/* Hint modal (X share -> poetic hint) */}
       <HintModal
         open={hintOpen}
         onClose={() => setHintOpen(false)}
@@ -52,6 +53,7 @@ export default function Page() {
         <JoinUs />
         {__SHOW_TESTS__ && <DevTests />}
       </main>
+
       <Footer />
       <EasterEggFace />
     </div>
