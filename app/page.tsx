@@ -153,7 +153,7 @@ function Hero({ onOpenHint }: { onOpenHint: () => void }) {
             className="text-xs text-neutral-400 hover:text-white underline underline-offset-4"
             aria-label="Get a hint for the Easter egg"
           >
-            hint
+            🐇🥚 hint
           </button>
         </div>
       </div>
