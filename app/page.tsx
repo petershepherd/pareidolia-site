@@ -28,6 +28,36 @@ export default function Page() {
     <div className="min-h-screen bg-neutral-950 text-neutral-100 selection:bg-cyan-500/40 selection:text-white">
       <AnimatedBackground />
       <Navbar />
+export default function Page() {
+  const [hintOpen, setHintOpen] = useState(false);
+
+  return (
+    <div className="min-h-screen bg-neutral-950 text-neutral-100 selection:bg-cyan-500/40 selection:text-white">
+      <AnimatedBackground />
+      <Navbar />
+
+      {/* Mount the modal once */}
+      <HintModal
+        open={hintOpen}
+        onClose={() => setHintOpen(false)}
+        tweetText={`Seeing faces in things? Same. PAREIDOLIA turns that universal glitch into a meme movement. Join us at https://www.illusionof.life #Pareidolia #FacesInThings`}
+      />
+
+      <main className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+        <Hero onOpenHint={() => setHintOpen(true)} />
+        <WhatIs />
+        <TokenOverview />
+        <WhyNow />
+        <Roadmap />
+        <JoinUs />
+        {__SHOW_TESTS__ && <DevTests />}
+      </main>
+      <Footer />
+      <EasterEggFace />
+    </div>
+  );
+}
+
     <SecretTypeUnlock
   secret={TOKEN.contract}
   password="PAREIDOLIA-FOUND-YOU"  // <-- IDE ÍRD A VÉGSŐ JELSZÓT
@@ -82,7 +112,7 @@ function NavLink({ href, children }: { href: string; children: React.ReactNode }
   );
 }
 
-function Hero() {
+function Hero({ onOpenHint }: { onOpenHint: () => void }) {
   const x = useMotionValue(0);
   const y = useMotionValue(0);
   const rotate = useTransform(x, [-100, 100], [-5, 5]);
@@ -102,8 +132,9 @@ function Hero() {
       <motion.div style={{ rotate }}>
         <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-center">See What You Want to See</h1>
       </motion.div>
-      <p className="mx-auto mt-4 max-w-2xl text-center text-neutral-300">The meme coin that turns your brain’s pattern‑recognition glitch into a movement.</p>
-      <p className="mx-auto mt-4 max-w-2xl text-center text-neutral-300">Could you find the 🐰🥚?</p>
+      <p className="mx-auto mt-4 max-w-2xl text-center text-neutral-300">
+        The meme coin that turns your brain’s pattern-recognition glitch into a movement.
+      </p>
       <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
         <Button asChild size="lg" className="rounded-2xl"><a href={LINKS.dex} target="_blank" rel="noreferrer">Buy Token <ExternalLink className="ml-2 h-4 w-4" /></a></Button>
         <Button asChild variant="secondary" size="lg" className="rounded-2xl"><a href={LINKS.telegram} target="_blank" rel="noreferrer">Join Telegram <Send className="ml-2 h-4 w-4" /></a></Button>
@@ -111,6 +142,16 @@ function Hero() {
       </div>
       <div className="mx-auto mt-10 max-w-xl">
         <CopyableAddress address={TOKEN.contract} />
+        {/* Tiny "Hint" trigger */}
+        <div className="mt-3 flex items-center justify-end">
+          <button
+            onClick={onOpenHint}
+            className="text-xs text-neutral-400 hover:text-white underline underline-offset-4"
+            aria-label="Get a hint for the Easter egg"
+          >
+            hint
+          </button>
+        </div>
       </div>
     </section>
   );
@@ -504,6 +545,117 @@ function SecretTypeUnlock({
           <p className="text-xs text-neutral-400">
             (Type-only • Case-insensitive • One-time per session)
           </p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+function HintModal({
+  open,
+  onClose,
+  tweetText,
+}: {
+  open: boolean;
+  onClose: () => void;
+  tweetText: string;
+}) {
+  const [step, setStep] = useState<"ask" | "hint">("ask");
+  const [copied, setCopied] = useState(false);
+  const [link, setLink] = useState("");
+
+  useEffect(() => {
+    if (!open) {
+      setStep("ask");
+      setCopied(false);
+      setLink("");
+    }
+  }, [open]);
+
+  const copyTweet = async () => {
+    try {
+      const ok = await tryClipboardWrite(tweetText);
+      if (ok) { setCopied(true); setTimeout(() => setCopied(false), 1200); return; }
+    } catch {}
+    const okLegacy = execCommandFallback(tweetText);
+    if (okLegacy) { setCopied(true); setTimeout(() => setCopied(false), 1200); }
+  };
+
+  if (!open) return null;
+
+  const xIntent = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`;
+
+  return (
+    <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <Card className="relative z-[71] w-full max-w-lg border-white/10 bg-white/5">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            {step === "ask" ? "Want a hint?" : "Your hint"}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {step === "ask" ? (
+            <>
+              <p className="text-neutral-300">
+                Share PAREIDOLIA on X to receive a small nudge toward the Easter egg.
+              </p>
+
+              {/* Prewritten share text */}
+              <div className="space-y-2">
+                <label className="text-xs text-neutral-400">Suggested post</label>
+                <div className="rounded-xl bg-black/30 p-3 text-sm">
+                  {tweetText}
+                </div>
+                <div className="flex gap-2">
+                  <Button onClick={copyTweet} variant="outline" className="rounded-2xl border-white/20 text-white hover:bg-white/10">
+                    {copied ? (<><Check className="mr-2 h-4 w-4" /> Copied</>) : (<><Copy className="mr-2 h-4 w-4" /> Copy text</>)}
+                  </Button>
+                  <Button asChild className="rounded-2xl">
+                    <a href={xIntent} target="_blank" rel="noreferrer">
+                      Post on X <ExternalLink className="ml-2 h-4 w-4" />
+                    </a>
+                  </Button>
+                </div>
+              </div>
+
+              {/* Optional "paste your link" */}
+              <div className="space-y-2">
+                <label className="text-xs text-neutral-400">Paste your post link (optional)</label>
+                {/* Using native textarea for convenience */}
+                <textarea
+                  value={link}
+                  onChange={(e) => setLink(e.target.value)}
+                  placeholder="https://x.com/your-handle/status/..."
+                  className="w-full rounded-xl border border-white/20 bg-black/30 p-3 text-sm text-white placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  rows={2}
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2">
+                <Button variant="ghost" className="rounded-2xl" onClick={onClose}>Close</Button>
+                <Button className="rounded-2xl" onClick={() => setStep("hint")}>
+                  Send & get hint
+                </Button>
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="text-neutral-300">
+                Here’s your poetic clue. Good luck…
+              </p>
+              <div className="rounded-xl border border-white/10 bg-gradient-to-br from-cyan-500/10 via-fuchsia-500/10 to-amber-400/10 p-4">
+                <p className="whitespace-pre-line text-sm leading-relaxed text-neutral-200">
+{`When clouds stand still and hush the sky,
+a face will bloom where edges lie.
+Not shouted loud, but softly shown—
+let patience guide what can’t be known.`}
+                </p>
+              </div>
+              <div className="flex items-center justify-end gap-2">
+                <Button className="rounded-2xl" onClick={onClose}>Got it</Button>
+              </div>
+            </>
+          )}
         </CardContent>
       </Card>
     </div>
