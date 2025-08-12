@@ -23,6 +23,8 @@ const TOKEN = {
 
 const __SHOW_TESTS__ = false;
 
+/* ------------------------------- PAGE ROOT ------------------------------- */
+
 export default function Page() {
   const [hintOpen, setHintOpen] = useState(false);
 
@@ -34,7 +36,7 @@ export default function Page() {
       {/* Secret typing unlock (contract typing reward) */}
       <SecretTypeUnlock
         secret={TOKEN.contract}
-        password="PAREIDOLIA-FOUND-YOU" // <- ide írhatod a végső jelszót
+        password="PAREIDOLIA-FOUND-YOU" // <- write your final password here
       />
 
       {/* Hint modal (X share -> poetic hint) */}
@@ -60,24 +62,7 @@ export default function Page() {
   );
 }
 
-    <SecretTypeUnlock
-  secret={TOKEN.contract}
-  password="PAREIDOLIA-FOUND-YOU"  // <-- IDE ÍRD A VÉGSŐ JELSZÓT
-/>
-      <main className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-        <Hero />
-        <WhatIs />
-        <TokenOverview />
-        <WhyNow />
-        <Roadmap />
-        <JoinUs />
-        {__SHOW_TESTS__ && <DevTests />}
-      </main>
-      <Footer />
-      <EasterEggFace />
-    </div>
-  );
-}
+/* -------------------------------- NAVBAR -------------------------------- */
 
 function Navbar() {
   return (
@@ -110,9 +95,13 @@ function Navbar() {
 
 function NavLink({ href, children }: { href: string; children: React.ReactNode }) {
   return (
-    <a href={href} className="rounded-full px-3 py-2 text-sm text-neutral-300 hover:text-white hover:bg-white/5 transition">{children}</a>
+    <a href={href} className="rounded-full px-3 py-2 text-sm text-neutral-300 hover:text-white hover:bg-white/5 transition">
+      {children}
+    </a>
   );
 }
+
+/* --------------------------------- HERO --------------------------------- */
 
 function Hero({ onOpenHint }: { onOpenHint: () => void }) {
   const x = useMotionValue(0);
@@ -132,19 +121,32 @@ function Hero({ onOpenHint }: { onOpenHint: () => void }) {
   return (
     <section id="top" className="relative py-20 sm:py-28">
       <motion.div style={{ rotate }}>
-        <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-center">See What You Want to See</h1>
+        <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-center">
+          See What You Want to See
+        </h1>
       </motion.div>
       <p className="mx-auto mt-4 max-w-2xl text-center text-neutral-300">
         The meme coin that turns your brain’s pattern-recognition glitch into a movement.
       </p>
       <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-        <Button asChild size="lg" className="rounded-2xl"><a href={LINKS.dex} target="_blank" rel="noreferrer">Buy Token <ExternalLink className="ml-2 h-4 w-4" /></a></Button>
-        <Button asChild variant="secondary" size="lg" className="rounded-2xl"><a href={LINKS.telegram} target="_blank" rel="noreferrer">Join Telegram <Send className="ml-2 h-4 w-4" /></a></Button>
-        <Button asChild variant="ghost" size="lg" className="rounded-2xl text-neutral-300 hover:text-white"><a href={LINKS.xCommunity} target="_blank" rel="noreferrer">Join X Community <Twitter className="ml-2 h-4 w-4" /></a></Button>
+        <Button asChild size="lg" className="rounded-2xl">
+          <a href={LINKS.dex} target="_blank" rel="noreferrer">
+            Buy Token <ExternalLink className="ml-2 h-4 w-4" />
+          </a>
+        </Button>
+        <Button asChild variant="secondary" size="lg" className="rounded-2xl">
+          <a href={LINKS.telegram} target="_blank" rel="noreferrer">
+            Join Telegram <Send className="ml-2 h-4 w-4" />
+          </a>
+        </Button>
+        <Button asChild variant="ghost" size="lg" className="rounded-2xl text-neutral-300 hover:text-white">
+          <a href={LINKS.xCommunity} target="_blank" rel="noreferrer">
+            Join X Community <Twitter className="ml-2 h-4 w-4" />
+          </a>
+        </Button>
       </div>
       <div className="mx-auto mt-10 max-w-xl">
         <CopyableAddress address={TOKEN.contract} />
-        {/* Tiny "Hint" trigger */}
         <div className="mt-3 flex items-center justify-end">
           <button
             onClick={onOpenHint}
@@ -158,6 +160,8 @@ function Hero({ onOpenHint }: { onOpenHint: () => void }) {
     </section>
   );
 }
+
+/* ---------------------------- COPY HELPERS ---------------------------- */
 
 async function tryClipboardWrite(text: string) {
   if (typeof navigator !== "undefined" && (navigator as any).clipboard && window.isSecureContext) {
@@ -181,17 +185,17 @@ function execCommandFallback(text: string) {
     document.body.removeChild(ta);
     if (!ok) throw new Error("execCommand copy returned false");
     return true;
-  } catch (e) {
+  } catch {
     return false;
   }
 }
+
+/* --------------------------- REUSABLE CARDS --------------------------- */
 
 function CopyableAddress({ address }: { address: string }) {
   const [copied, setCopied] = useState(false);
   const [manual, setManual] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
-  const short = useMemo(() => address.slice(0, 6) + "…" + address.slice(-6), [address]);
-
   useEffect(() => {
     if (manual && inputRef.current) {
       inputRef.current.focus();
@@ -203,10 +207,18 @@ function CopyableAddress({ address }: { address: string }) {
     setManual(false);
     try {
       const okModern = await tryClipboardWrite(address);
-      if (okModern) { setCopied(true); setTimeout(() => setCopied(false), 1400); return; }
+      if (okModern) {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1400);
+        return;
+      }
     } catch {}
     const okLegacy = execCommandFallback(address);
-    if (okLegacy) { setCopied(true); setTimeout(() => setCopied(false), 1400); return; }
+    if (okLegacy) {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1400);
+      return;
+    }
     setManual(true);
   };
 
@@ -218,16 +230,48 @@ function CopyableAddress({ address }: { address: string }) {
           <code className="block text-sm sm:text-base text-white/90 break-all">{address}</code>
           {manual && (
             <div className="mt-2 flex items-center gap-2">
-              <Input ref={inputRef} readOnly value={address} className="bg-black/30 border-white/20 text-white" aria-label="Contract address manual copy" />
-              <Button type="button" variant="outline" className="rounded-2xl border-white/20 text-white hover:bg-white/10" onClick={() => { if (inputRef.current) { inputRef.current.focus(); inputRef.current.select(); } }}>Select</Button>
+              <Input
+                ref={inputRef}
+                readOnly
+                value={address}
+                className="bg-black/30 border-white/20 text-white"
+                aria-label="Contract address manual copy"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                className="rounded-2xl border-white/20 text-white hover:bg-white/10"
+                onClick={() => {
+                  if (inputRef.current) {
+                    inputRef.current.focus();
+                    inputRef.current.select();
+                  }
+                }}
+              >
+                Select
+              </Button>
               <span className="text-xs text-neutral-400">Press Ctrl/Cmd + C</span>
             </div>
           )}
         </div>
         <div className="flex items-center gap-2">
           <Badge className="rounded-full">{TOKEN.chain}</Badge>
-          <Button onClick={handleCopy} variant="outline" className="rounded-2xl border-white/20 text-white hover:bg-white/10" aria-live="polite" data-e2e="copy-button">
-            {copied ? (<><Check className="mr-2 h-4 w-4" /> Copied</>) : (<><Copy className="mr-2 h-4 w-4" /> Copy</>)}
+          <Button
+            onClick={handleCopy}
+            variant="outline"
+            className="rounded-2xl border-white/20 text-white hover:bg-white/10"
+            aria-live="polite"
+            data-e2e="copy-button"
+          >
+            {copied ? (
+              <>
+                <Check className="mr-2 h-4 w-4" /> Copied
+              </>
+            ) : (
+              <>
+                <Copy className="mr-2 h-4 w-4" /> Copy
+              </>
+            )}
           </Button>
         </div>
       </CardContent>
@@ -235,13 +279,19 @@ function CopyableAddress({ address }: { address: string }) {
   );
 }
 
+/* ----------------------------- SECTIONS ----------------------------- */
+
 function WhatIs() {
   return (
     <section id="what" className="relative py-20">
       <div className="grid items-center gap-8 md:grid-cols-2">
         <div className="space-y-4">
           <h2 className="text-2xl sm:text-3xl font-bold">What is Pareidolia?</h2>
-          <p className="text-neutral-300">Pareidolia is your brain’s habit of finding meaning where there is none — faces in clouds, animals in coffee foam, words in static noise. We turned this universal, weirdly emotional experience into a meme coin.</p>
+          <p className="text-neutral-300">
+            Pareidolia is your brain’s habit of finding meaning where there is none — faces in clouds,
+            animals in coffee foam, words in static noise. We turned this universal, weirdly emotional
+            experience into a meme coin.
+          </p>
           <ul className="list-disc pl-5 text-neutral-300 space-y-2">
             <li>See faces in objects</li>
             <li>Hear words in random noise</li>
@@ -259,7 +309,12 @@ function PatternMosaic() {
   return (
     <div className="grid grid-cols-3 gap-3">
       {tiles.map((_, i) => (
-        <motion.div key={i} className="aspect-square rounded-2xl bg-gradient-to-br from-cyan-500/20 via-fuchsia-500/20 to-amber-400/20 border border-white/10" animate={{ borderRadius: ["1rem", "30%", "50%", "1rem"], scale: [1, 1.02, 0.98, 1] }} transition={{ duration: 4 + (i % 3), repeat: Infinity, ease: "easeInOut" }} />
+        <motion.div
+          key={i}
+          className="aspect-square rounded-2xl bg-gradient-to-br from-cyan-500/20 via-fuchsia-500/20 to-amber-400/20 border border-white/10"
+          animate={{ borderRadius: ["1rem", "30%", "50%", "1rem"], scale: [1, 1.02, 0.98, 1] }}
+          transition={{ duration: 4 + (i % 3), repeat: Infinity, ease: "easeInOut" }}
+        />
       ))}
     </div>
   );
@@ -277,12 +332,30 @@ function TokenOverview() {
         <TokenStat label="Ticker" value={TOKEN.ticker} />
         <TokenStat label="Supply" value={TOKEN.supply} />
       </div>
-      <div className="mt-6"><CopyableAddress address={TOKEN.contract} /></div>
+      <div className="mt-6">
+        <CopyableAddress address={TOKEN.contract} />
+      </div>
       <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-        <Button asChild className="rounded-2xl"><a href={LINKS.dex} target="_blank" rel="noreferrer">Buy on DEX <ExternalLink className="ml-2 h-4 w-4" /></a></Button>
-        <Button asChild variant="outline" className="rounded-2xl border-white/20 text-white hover:bg-white/10"><a href={LINKS.explorer} target="_blank" rel="noreferrer">View on Explorer <ExternalLink className="ml-2 h-4 w-4" /></a></Button>
-        <Button asChild variant="ghost" className="rounded-2xl text-neutral-300 hover:text-white"><a href={LINKS.xCommunity} target="_blank" rel="noreferrer">X Community <Twitter className="ml-2 h-4 w-4" /></a></Button>
-        <Button asChild variant="secondary" className="rounded-2xl"><a href={LINKS.telegram} target="_blank" rel="noreferrer">Telegram <Send className="ml-2 h-4 w-4" /></a></Button>
+        <Button asChild className="rounded-2xl">
+          <a href={LINKS.dex} target="_blank" rel="noreferrer">
+            Buy on DEX <ExternalLink className="ml-2 h-4 w-4" />
+          </a>
+        </Button>
+        <Button asChild variant="outline" className="rounded-2xl border-white/20 text-white hover:bg-white/10">
+          <a href={LINKS.explorer} target="_blank" rel="noreferrer">
+            View on Explorer <ExternalLink className="ml-2 h-4 w-4" />
+          </a>
+        </Button>
+        <Button asChild variant="ghost" className="rounded-2xl text-neutral-300 hover:text-white">
+          <a href={LINKS.xCommunity} target="_blank" rel="noreferrer">
+            X Community <Twitter className="ml-2 h-4 w-4" />
+          </a>
+        </Button>
+        <Button asChild variant="secondary" className="rounded-2xl">
+          <a href={LINKS.telegram} target="_blank" rel="noreferrer">
+            Telegram <Send className="ml-2 h-4 w-4" />
+          </a>
+        </Button>
       </div>
     </section>
   );
@@ -291,8 +364,12 @@ function TokenOverview() {
 function TokenStat({ label, value }: { label: string; value: string }) {
   return (
     <Card className="rounded-2xl bg-white/5 border-white/10">
-      <CardHeader><CardTitle className="text-sm font-medium text-neutral-400">{label}</CardTitle></CardHeader>
-      <CardContent><div className="text-xl font-semibold">{value}</div></CardContent>
+      <CardHeader>
+        <CardTitle className="text-sm font-medium text-neutral-400">{label}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="text-xl font-semibold">{value}</div>
+      </CardContent>
     </Card>
   );
 }
@@ -303,10 +380,12 @@ function WhyNow() {
       <div className="grid items-start gap-8 md:grid-cols-2">
         <div className="space-y-4">
           <h2 className="text-2xl sm:text-3xl font-bold">Why now?</h2>
-<p className="text-neutral-300">
-  Pareidolia isn’t just a brain quirk — it’s a universal glitch turned cultural engine. In a world of noise, we give people something to <em>see</em>. Part art experiment, part social phenomenon, part crypto wildfire — PAREIDOLIA is built to spread faster than the patterns you imagine.
-</p>
-<ul className="list-disc pl-5 text-neutral-300 space-y-2">
+          <p className="text-neutral-300">
+            Pareidolia isn’t just a brain quirk — it’s a universal glitch turned cultural engine. In a world of
+            noise, we give people something to <em>see</em>. Part art experiment, part social phenomenon, part crypto
+            wildfire — PAREIDOLIA is built to spread faster than the patterns you imagine.
+          </p>
+          <ul className="list-disc pl-5 text-neutral-300 space-y-2">
             <li>Culturally familiar: everyone experiences it</li>
             <li>Emotionally sticky: sparks strong reactions</li>
             <li>Infinitely memeable visuals & prompts</li>
@@ -321,9 +400,16 @@ function WhyNow() {
 function CalloutCard() {
   return (
     <Card className="rounded-2xl bg-gradient-to-br from-cyan-500/10 via-fuchsia-500/10 to-amber-400/10 border-white/10">
-      <CardHeader><CardTitle className="flex items-center gap-2">Patterns in chaos <LinkIcon className="h-4 w-4" /></CardTitle></CardHeader>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          Patterns in chaos <LinkIcon className="h-4 w-4" />
+        </CardTitle>
+      </CardHeader>
       <CardContent className="space-y-4">
-        <p className="text-neutral-300">If you’ve ever seen a face in your toast or an animal in the clouds — you’ve experienced Pareidolia. We’re turning that shared moment into a community and a joke (that might just go places).</p>
+        <p className="text-neutral-300">
+          If you’ve ever seen a face in your toast or an animal in the clouds — you’ve experienced Pareidolia. We’re
+          turning that shared moment into a community and a joke (that might just go places).
+        </p>
         <div className="flex flex-wrap gap-2">
           <Badge className="rounded-full">#facesineverything</Badge>
           <Badge className="rounded-full">#pareidolia</Badge>
@@ -336,20 +422,30 @@ function CalloutCard() {
 
 function Roadmap() {
   const phases = [
-    { title: "Phase 1 – First Faces", points: ["Launch PAREIDOLIA & seed early memes", "Establish Telegram & X Community", "List on DEX + publish CA"] },
+    {
+      title: "Phase 1 – First Faces",
+      points: ["Launch PAREIDOLIA & seed early memes", "Establish Telegram & X Community", "List on DEX + publish CA"],
+    },
     { title: "Phase 2 – Pattern Surge", points: ["X-driven visual prompts and threads", "Collabs with artists & memers", "Weekly recognition challenges"] },
     { title: "Phase 3 – Global Vision", points: ["Cross-community partnerships", "IRL pareidolia scavenger hunts", "Bigger meme contests & cultural takeover"] },
   ];
   return (
     <section id="roadmap" className="relative py-20">
-      <div className="mb-8 text-center"><h2 className="text-2xl sm:text-3xl font-bold">Roadmap – Pattern Recognition</h2><p className="mt-2 text-neutral-300">We advance as the patterns emerge.</p></div>
+      <div className="mb-8 text-center">
+        <h2 className="text-2xl sm:text-3xl font-bold">Roadmap – Pattern Recognition</h2>
+        <p className="mt-2 text-neutral-300">We advance as the patterns emerge.</p>
+      </div>
       <div className="grid gap-6 md:grid-cols-3">
         {phases.map((p, i) => (
           <Card key={i} className="rounded-2xl bg-white/5 border-white/10">
-            <CardHeader><CardTitle>{p.title}</CardTitle></CardHeader>
+            <CardHeader>
+              <CardTitle>{p.title}</CardTitle>
+            </CardHeader>
             <CardContent>
               <ul className="list-disc pl-5 text-neutral-300 space-y-2">
-                {p.points.map((pt, j) => (<li key={j}>{pt}</li>))}
+                {p.points.map((pt, j) => (
+                  <li key={j}>{pt}</li>
+                ))}
               </ul>
             </CardContent>
           </Card>
@@ -364,15 +460,28 @@ function JoinUs() {
     <section id="join" className="relative py-20">
       <div className="mx-auto max-w-2xl text-center">
         <h2 className="text-2xl sm:text-3xl font-bold">Join us</h2>
-        <p className="mt-3 text-neutral-300">The fun isn’t on the website — it’s in the community. Join our X group and Telegram to see what everyone else is seeing… and maybe spot patterns no one else noticed.</p>
+        <p className="mt-3 text-neutral-300">
+          The fun isn’t on the website — it’s in the community. Join our X group and Telegram to see what everyone else
+          is seeing… and maybe spot patterns no one else noticed.
+        </p>
         <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
-          <Button asChild size="lg" className="rounded-2xl"><a href={LINKS.telegram} target="_blank" rel="noreferrer">Join Telegram <Send className="ml-2 h-4 w-4" /></a></Button>
-          <Button asChild variant="secondary" size="lg" className="rounded-2xl"><a href={LINKS.xCommunity} target="_blank" rel="noreferrer">Join X Community <Twitter className="ml-2 h-4 w-4" /></a></Button>
+          <Button asChild size="lg" className="rounded-2xl">
+            <a href={LINKS.telegram} target="_blank" rel="noreferrer">
+              Join Telegram <Send className="ml-2 h-4 w-4" />
+            </a>
+          </Button>
+          <Button asChild variant="secondary" size="lg" className="rounded-2xl">
+            <a href={LINKS.xCommunity} target="_blank" rel="noreferrer">
+              Join X Community <Twitter className="ml-2 h-4 w-4" />
+            </a>
+          </Button>
         </div>
       </div>
     </section>
   );
 }
+
+/* -------------------------------- FOOTER -------------------------------- */
 
 function Footer() {
   return (
@@ -380,14 +489,28 @@ function Footer() {
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="text-sm text-neutral-400">© {new Date().getFullYear()} PAREIDOLIA</div>
         <div className="flex items-center gap-3">
-          <Button asChild variant="outline" className="rounded-2xl border-white/20 text-white hover:bg-white/10"><a href={LINKS.dex} target="_blank" rel="noreferrer">Buy <ExternalLink className="ml-2 h-4 w-4" /></a></Button>
-          <Button asChild variant="ghost" className="rounded-2xl text-neutral-300 hover:text-white"><a href={LINKS.xCommunity} target="_blank" rel="noreferrer">X <Twitter className="ml-2 h-4 w-4" /></a></Button>
-          <Button asChild variant="ghost" className="rounded-2xl text-neutral-300 hover:text-white"><a href={LINKS.telegram} target="_blank" rel="noreferrer">Telegram <Send className="ml-2 h-4 w-4" /></a></Button>
+          <Button asChild variant="outline" className="rounded-2xl border-white/20 text-white hover:bg-white/10">
+            <a href={LINKS.dex} target="_blank" rel="noreferrer">
+              Buy <ExternalLink className="ml-2 h-4 w-4" />
+            </a>
+          </Button>
+          <Button asChild variant="ghost" className="rounded-2xl text-neutral-300 hover:text-white">
+            <a href={LINKS.xCommunity} target="_blank" rel="noreferrer">
+              X <Twitter className="ml-2 h-4 w-4" />
+            </a>
+          </Button>
+          <Button asChild variant="ghost" className="rounded-2xl text-neutral-300 hover:text-white">
+            <a href={LINKS.telegram} target="_blank" rel="noreferrer">
+              Telegram <Send className="ml-2 h-4 w-4" />
+            </a>
+          </Button>
         </div>
       </div>
     </footer>
   );
 }
+
+/* --------------------------- BACKGROUND FX --------------------------- */
 
 function AnimatedBackground() {
   return (
@@ -403,16 +526,26 @@ function AnimatedBackground() {
 
 function Blob({ className = "", delay = 0 }: { className?: string; delay?: number }) {
   return (
-    <motion.div className={`absolute h-[42vmax] w-[42vmax] rounded-[40%] bg-gradient-to-tr from-fuchsia-500/20 via-cyan-500/20 to-amber-400/20 blur-3xl ${className}`} animate={{ borderRadius: ["40%", "45% 35% 50% 40%", "50%", "35% 55% 45% 60%", "40%"], x: [0, 50, -40, 30, 0], y: [0, -30, 40, -20, 0] }} transition={{ duration: 24, ease: "easeInOut", repeat: Infinity, delay }} />
+    <motion.div
+      className={`absolute h-[42vmax] w-[42vmax] rounded-[40%] bg-gradient-to-tr from-fuchsia-500/20 via-cyan-500/20 to-amber-400/20 blur-3xl ${className}`}
+      animate={{ borderRadius: ["40%", "45% 35% 50% 40%", "50%", "35% 55% 45% 60%", "40%"], x: [0, 50, -40, 30, 0], y: [0, -30, 40, -20, 0] }}
+      transition={{ duration: 24, ease: "easeInOut", repeat: Infinity, delay }}
+    />
   );
 }
 
-function GridNoise() { return (<div className="absolute inset-0 opacity-[0.08] [background:repeating-linear-gradient(0deg,transparent,transparent_2px,rgba(255,255,255,0.03)_2px,rgba(255,255,255,0.03)_4px)]" />); }
+function GridNoise() {
+  return <div className="absolute inset-0 opacity-[0.08] [background:repeating-linear-gradient(0deg,transparent,transparent_2px,rgba(255,255,255,0.03)_2px,rgba(255,255,255,0.03)_4px)]" />;
+}
 
 function PareidoliaEyes() {
   return (
     <div className="absolute left-1/2 top-[28%] -translate-x-1/2">
-      <motion.div className="h-24 w-[44rem] max-w-[90vw]" animate={{ opacity: [0, 0.25, 0] }} transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 4 }}>
+      <motion.div
+        className="h-24 w-[44rem] max-w-[90vw]"
+        animate={{ opacity: [0, 0.25, 0] }}
+        transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 4 }}
+      >
         <svg viewBox="0 0 880 120" className="h-full w-full">
           <path d="M20,80 Q440,-40 860,80" stroke="rgba(255,255,255,0.25)" strokeWidth="2" fill="none" />
           <path d="M20,100 Q440,-20 860,100" stroke="rgba(255,255,255,0.18)" strokeWidth="2" fill="none" />
@@ -422,31 +555,39 @@ function PareidoliaEyes() {
   );
 }
 
+/* ------------------------------- EGG FX ------------------------------- */
+
 function EasterEggFace() {
   const [show, setShow] = useState(false);
-useEffect(() => {
-  // időzített megjelenítés
-  const t = setTimeout(() => setShow(true), 15000);
-  const t2 = setTimeout(() => setShow(false), 20000);
+  useEffect(() => {
+    // timed reveal
+    const t = setTimeout(() => setShow(true), 15000);
+    const t2 = setTimeout(() => setShow(false), 20000);
 
-  // egyedi eseményre is reagáljon
-  const onEgg = () => {
-    setShow(true);
-    setTimeout(() => setShow(false), 100000);
-  };
-  window.addEventListener("pareidolia:egg", onEgg as EventListener);
+    // custom event trigger
+    const onEgg = () => {
+      setShow(true);
+      setTimeout(() => setShow(false), 6000);
+    };
+    window.addEventListener("pareidolia:egg", onEgg as unknown as EventListener);
 
-  return () => {
-    clearTimeout(t);
-    clearTimeout(t2);
-    window.removeEventListener("pareidolia:egg", onEgg as EventListener);
-  };
-}, []);
+    return () => {
+      clearTimeout(t);
+      clearTimeout(t2);
+      window.removeEventListener("pareidolia:egg", onEgg as unknown as EventListener);
+    };
+  }, []);
 
   if (!show) return null;
   return (
     <div className="pointer-events-none fixed inset-0 -z-0 flex items-center justify-center">
-      <motion.div initial={{ scale: 0.96, opacity: 0 }} animate={{ scale: 1, opacity: 0.15 }} exit={{ opacity: 0 }} transition={{ duration: 1.2 }} className="relative h-[40vmin] w-[40vmin]">
+      <motion.div
+        initial={{ scale: 0.96, opacity: 0 }}
+        animate={{ scale: 1, opacity: 0.15 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 1.2 }}
+        className="relative h:[40vmin] w:[40vmin] h-[40vmin] w-[40vmin]"
+      >
         <svg viewBox="0 0 200 200" className="h-full w-full">
           <circle cx="100" cy="100" r="95" fill="none" stroke="white" strokeOpacity="0.35" />
           <circle cx="70" cy="90" r="10" fill="white" fillOpacity="0.35" />
@@ -458,6 +599,8 @@ useEffect(() => {
   );
 }
 
+/* ------------------------------ DEV TESTS ----------------------------- */
+
 function DevTests() {
   return (
     <section className="relative py-10">
@@ -467,9 +610,11 @@ function DevTests() {
   );
 }
 
+/* -------------------------- SECRET TYPE UNLOCK ------------------------- */
+
 function SecretTypeUnlock({
   secret,
-  password = "PAREIDOLIA-FOUND-YOU", // <- IDE ÍRD A SAJÁT JELSZÓT
+  password = "PAREIDOLIA-FOUND-YOU",
 }: {
   secret: string;
   password?: string;
@@ -477,16 +622,13 @@ function SecretTypeUnlock({
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  // Normalizált cél (kisbetű, szóköz nélkül)
   const target = secret.toLowerCase().replace(/\s+/g, "");
-  const idxRef = useRef(0); // hányadik karakterig jutottunk
+  const idxRef = useRef(0);
 
   useEffect(() => {
-    // egy sessionben egyszer
     if (sessionStorage.getItem("pareidolia:egg:done")) return;
 
     const onKey = (e: KeyboardEvent) => {
-      // csak 1 hosszú, alfanumerikus billentyűt figyelünk
       if (e.key.length !== 1) return;
       const ch = e.key.toLowerCase();
       if (!/[a-z0-9]/.test(ch)) return;
@@ -495,10 +637,8 @@ function SecretTypeUnlock({
       const expected = target[i];
 
       if (ch === expected) {
-        // jó karakter
         idxRef.current = i + 1;
         if (idxRef.current === target.length) {
-          // kész!
           sessionStorage.setItem("pareidolia:egg:done", "1");
           idxRef.current = 0;
           setOpen(true);
@@ -507,7 +647,6 @@ function SecretTypeUnlock({
           } catch {}
         }
       } else {
-        // elütés: ha a mostani karakter a target első betűje, kezdjük 1-ről, különben 0
         idxRef.current = ch === target[0] ? 1 : 0;
       }
     };
@@ -519,10 +658,18 @@ function SecretTypeUnlock({
   const copyPw = async () => {
     try {
       const okModern = await tryClipboardWrite(password);
-      if (okModern) { setCopied(true); setTimeout(() => setCopied(false), 1200); return; }
+      if (okModern) {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1200);
+        return;
+      }
     } catch {}
     const okLegacy = execCommandFallback(password);
-    if (okLegacy) { setCopied(true); setTimeout(() => setCopied(false), 1200); return; }
+    if (okLegacy) {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1200);
+      return;
+    }
   };
 
   if (!open) return null;
@@ -541,17 +688,26 @@ function SecretTypeUnlock({
           <div className="flex items-center gap-2">
             <code className="block flex-1 rounded-xl bg-black/40 px-3 py-2 text-sm">{password}</code>
             <Button variant="outline" className="rounded-2xl border-white/20 text-white hover:bg-white/10" onClick={copyPw}>
-              {copied ? (<><Check className="mr-2 h-4 w-4" /> Copied</>) : (<><Copy className="mr-2 h-4 w-4" /> Copy</>)}
+              {copied ? (
+                <>
+                  <Check className="mr-2 h-4 w-4" /> Copied
+                </>
+              ) : (
+                <>
+                  <Copy className="mr-2 h-4 w-4" /> Copy
+                </>
+              )}
             </Button>
           </div>
-          <p className="text-xs text-neutral-400">
-            (Type-only • Case-insensitive • One-time per session)
-          </p>
+          <p className="text-xs text-neutral-400">(Type-only • Case-insensitive • One-time per session)</p>
         </CardContent>
       </Card>
     </div>
   );
 }
+
+/* ------------------------------ HINT MODAL ----------------------------- */
+
 function HintModal({
   open,
   onClose,
@@ -576,10 +732,17 @@ function HintModal({
   const copyTweet = async () => {
     try {
       const ok = await tryClipboardWrite(tweetText);
-      if (ok) { setCopied(true); setTimeout(() => setCopied(false), 1200); return; }
+      if (ok) {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1200);
+        return;
+      }
     } catch {}
     const okLegacy = execCommandFallback(tweetText);
-    if (okLegacy) { setCopied(true); setTimeout(() => setCopied(false), 1200); }
+    if (okLegacy) {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1200);
+    }
   };
 
   if (!open) return null;
@@ -591,26 +754,27 @@ function HintModal({
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
       <Card className="relative z-[71] w-full max-w-lg border-white/10 bg-white/5">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            {step === "ask" ? "Want a hint?" : "Your hint"}
-          </CardTitle>
+          <CardTitle className="flex items-center gap-2">{step === "ask" ? "Want a hint?" : "Your hint"}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {step === "ask" ? (
             <>
-              <p className="text-neutral-300">
-                Share PAREIDOLIA on X to receive a small nudge toward the Easter egg.
-              </p>
+              <p className="text-neutral-300">Share PAREIDOLIA on X to receive a small nudge toward the Easter egg.</p>
 
-              {/* Prewritten share text */}
               <div className="space-y-2">
                 <label className="text-xs text-neutral-400">Suggested post</label>
-                <div className="rounded-xl bg-black/30 p-3 text-sm">
-                  {tweetText}
-                </div>
+                <div className="rounded-xl bg-black/30 p-3 text-sm">{tweetText}</div>
                 <div className="flex gap-2">
                   <Button onClick={copyTweet} variant="outline" className="rounded-2xl border-white/20 text-white hover:bg-white/10">
-                    {copied ? (<><Check className="mr-2 h-4 w-4" /> Copied</>) : (<><Copy className="mr-2 h-4 w-4" /> Copy text</>)}
+                    {copied ? (
+                      <>
+                        <Check className="mr-2 h-4 w-4" /> Copied
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="mr-2 h-4 w-4" /> Copy text
+                      </>
+                    )}
                   </Button>
                   <Button asChild className="rounded-2xl">
                     <a href={xIntent} target="_blank" rel="noreferrer">
@@ -620,10 +784,8 @@ function HintModal({
                 </div>
               </div>
 
-              {/* Optional "paste your link" */}
               <div className="space-y-2">
                 <label className="text-xs text-neutral-400">Paste your post link (optional)</label>
-                {/* Using native textarea for convenience */}
                 <textarea
                   value={link}
                   onChange={(e) => setLink(e.target.value)}
@@ -634,7 +796,9 @@ function HintModal({
               </div>
 
               <div className="flex items-center justify-end gap-2">
-                <Button variant="ghost" className="rounded-2xl" onClick={onClose}>Close</Button>
+                <Button variant="ghost" className="rounded-2xl" onClick={onClose}>
+                  Close
+                </Button>
                 <Button className="rounded-2xl" onClick={() => setStep("hint")}>
                   Send & get hint
                 </Button>
@@ -642,19 +806,19 @@ function HintModal({
             </>
           ) : (
             <>
-              <p className="text-neutral-300">
-                Here’s your poetic clue. Good luck…
-              </p>
+              <p className="text-neutral-300">Here’s your poetic clue. Good luck…</p>
               <div className="rounded-xl border border-white/10 bg-gradient-to-br from-cyan-500/10 via-fuchsia-500/10 to-amber-400/10 p-4">
                 <p className="whitespace-pre-line text-sm leading-relaxed text-neutral-200">
-{`When clouds stand still and hush the sky,
+                  {`When clouds stand still and hush the sky,
 a face will bloom where edges lie.
 Not shouted loud, but softly shown—
 let patience guide what can’t be known.`}
                 </p>
               </div>
               <div className="flex items-center justify-end gap-2">
-                <Button className="rounded-2xl" onClick={onClose}>Got it</Button>
+                <Button className="rounded-2xl" onClick={onClose}>
+                  Got it
+                </Button>
               </div>
             </>
           )}
