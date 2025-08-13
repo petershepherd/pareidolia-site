@@ -9,10 +9,7 @@ export function WalletProviders({
   children,
   rpcUrl,
 }: PropsWithChildren<{ rpcUrl?: string }>) {
-  const endpoint =
-    rpcUrl ||
-    process.env.NEXT_PUBLIC_SOLANA_RPC_URL ||
-    "https://api.mainnet-beta.solana.com";
+const endpoint = process.env.NEXT_PUBLIC_SOLANA_RPC_URL!;
 
   const wallets = useMemo(
     () => [
