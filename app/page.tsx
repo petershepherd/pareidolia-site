@@ -1,5 +1,6 @@
 "use client";
 
+import { HolderGate } from "@/components/HolderGate";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { motion, useMotionValue, useTransform } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -771,24 +772,42 @@ function HintModal({
                 </Button>
               </div>
             </>
-          ) : (
-            <>
-              <p className="text-neutral-300">Here’s your poetic clue. Good luck…</p>
-              <div className="rounded-xl border border-white/10 bg-gradient-to-br from-cyan-500/10 via-fuchsia-500/10 to-amber-400/10 p-4">
-                <p className="whitespace-pre-line text-sm leading-relaxed text-neutral-200">
-                  {`When clouds stand still and hush the sky,
+        ) : (
+  <>
+    <p className="text-neutral-300">Here’s your poetic clue. Good luck…</p>
+
+    {/* HINT #1 – mindenki láthatja */}
+    <div className="rounded-xl border border-white/10 bg-gradient-to-br from-cyan-500/10 via-fuchsia-500/10 to-amber-400/10 p-4">
+      <p className="whitespace-pre-line text-sm leading-relaxed text-neutral-200">
+{`When clouds stand still and hush the sky,
 a face will bloom where edges lie.
 Not shouted loud, but softly shown—
 let patience guide what can’t be known.`}
-                </p>
-              </div>
-              <div className="flex items-center justify-end gap-2">
-                <Button className="rounded-2xl" onClick={onClose}>
-                  Got it
-                </Button>
-              </div>
-            </>
-          )}
+      </p>
+    </div>
+
+    {/* HINT #2 – csak token-tartóknak */}
+    <div className="mt-4">
+      <HolderGate
+        title="Unlock deeper hint (holders only)"
+        requireAmountText="Connect your wallet and hold any amount of $PAREIDOLIA to reveal the deeper hint."
+      >
+        <div className="rounded-xl border border-white/10 bg-gradient-to-tr from-amber-400/10 via-fuchsia-500/10 to-cyan-500/10 p-4">
+          <p className="whitespace-pre-line text-sm leading-relaxed text-neutral-200">
+{`Where whispers curl in silver mist,
+seek not the shout, but what you missed.
+Between the beats a shape will start—
+the quiet curve becomes the heart.`}
+          </p>
+        </div>
+      </HolderGate>
+    </div>
+
+    <div className="flex items-center justify-end gap-2">
+      <Button className="rounded-2xl" onClick={onClose}>Got it</Button>
+    </div>
+  </>
+)}
         </CardContent>
       </Card>
     </div>
