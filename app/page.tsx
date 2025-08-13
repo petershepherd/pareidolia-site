@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { motion, useMotionValue, useTransform } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -6,9 +7,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Copy, Check, ExternalLink, Twitter, Send, Link as LinkIcon } from "lucide-react";
+import { Navbar } from "@/components/site-navbar";
 
-<Navbar links={{ dex: LINKS.dex, xCommunity: LINKS.xCommunity, telegram: LINKS.telegram }} />
+/* ------------------------------- LINKS & TOKEN ------------------------------- */
 
+const LINKS = {
+  telegram: "https://t.me/pareidoliaportal",
+  xCommunity: "https://x.com/i/communities/1954506369618391171",
+  dex: "https://letsbonk.fun/token/BXrwn2UWEeUAKghP8hatpW4i5AMchdscTzchMYE4bonk",
+  explorer: "https://solscan.io/token/BXrwn2UWEeUAKghP8hatpW4i5AMchdscTzchMYE4bonk",
 };
 
 const TOKEN = {
@@ -28,7 +35,9 @@ export default function Page() {
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-100 selection:bg-cyan-500/40 selection:text-white">
       <AnimatedBackground />
-      <Navbar />
+
+      {/* NAVBAR – KÖZÖS KOMPONENS */}
+      <Navbar links={{ dex: LINKS.dex, xCommunity: LINKS.xCommunity, telegram: LINKS.telegram }} />
 
       {/* Secret typing unlock (contract typing reward) */}
       <SecretTypeUnlock
@@ -58,11 +67,6 @@ export default function Page() {
     </div>
   );
 }
-
-/* -------------------------------- NAVBAR -------------------------------- */
-
-import { Navbar } from "@/components/site-navbar";
-
 
 /* --------------------------------- HERO --------------------------------- */
 
@@ -113,7 +117,7 @@ function Hero({ onOpenHint }: { onOpenHint: () => void }) {
         <div className="mt-3 flex items-center justify-end">
           <button
             onClick={onOpenHint}
-            className="text-xs text-neutral-400 hover:text-white underline underline-offset-4"
+            className="text-xs text-neutral-400 hover:text-white underline underline-offset-4 flex items-center gap-1"
             aria-label="Get a hint for the Easter egg"
           >
             🐇🥚 hint
@@ -549,7 +553,7 @@ function EasterEggFace() {
         animate={{ scale: 1, opacity: 0.15 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 1.2 }}
-        className="relative h:[40vmin] w:[40vmin] h-[40vmin] w-[40vmin]"
+        className="relative h-[40vmin] w-[40vmin]"
       >
         <svg viewBox="0 0 200 200" className="h-full w-full">
           <circle cx="100" cy="100" r="95" fill="none" stroke="white" strokeOpacity="0.35" />
