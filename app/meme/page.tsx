@@ -217,6 +217,7 @@ export default function MemeToolPage() {
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-100">
   <Navbar links={{ dex: "https://letsbonk.fun/token/BXrwn2UWEeUAKghP8hatpW4i5AMchdscTzchMYE4bonk", xCommunity: "https://x.com/i/communities/1954506369618391171", telegram: "https://t.me/pareidoliaportal" }} />
+  {/* ... a többi tartalom ... */}
 </div>
     <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-10">
       <div className="mb-8">
