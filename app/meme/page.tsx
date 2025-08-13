@@ -7,11 +7,6 @@ import { Badge } from "@/components/ui/badge";
 import { Download, Image as ImageIcon, Wand2, Type, Droplets } from "lucide-react";
 import { Navbar } from "@/components/site-navbar";
 
-<div className="min-h-screen bg-neutral-950 text-neutral-100">
-  <Navbar links={{ dex: "https://letsbonk.fun/token/BXrwn2UWEeUAKghP8hatpW4i5AMchdscTzchMYE4bonk", xCommunity: "https://x.com/i/communities/1954506369618391171", telegram: "https://t.me/pareidoliaportal" }} />
-  {/* ... a többi tartalom ... */}
-</div>
-
 type Pos = { x: number; y: number };
 
 export default function MemeToolPage() {
@@ -220,6 +215,9 @@ export default function MemeToolPage() {
   };
 
   return (
+    <div className="min-h-screen bg-neutral-950 text-neutral-100">
+  <Navbar links={{ dex: "https://letsbonk.fun/token/BXrwn2UWEeUAKghP8hatpW4i5AMchdscTzchMYE4bonk", xCommunity: "https://x.com/i/communities/1954506369618391171", telegram: "https://t.me/pareidoliaportal" }} />
+</div>
     <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-10">
       <div className="mb-8">
         <h1 className="text-2xl sm:text-3xl font-bold">PAREIDOLIA Meme Generator</h1>
