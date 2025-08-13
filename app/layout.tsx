@@ -1,23 +1,24 @@
-// app/layout.tsx
 import "./globals.css";
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import { WalletProviders } from "@/components/solana/WalletProviders";
+import dynamic from "next/dynamic";
 
-const inter = Inter({ subsets: ["latin"] });
+const ClientWalletProviders = dynamic(
+  () => import("@/components/solana/WalletProviders").then(m => m.WalletProviders),
+  { ssr: false }
+);
 
 export const metadata: Metadata = {
   title: "PAREIDOLIA",
-  description: "Illusion of life.",
+  description: "See faces in things.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="h-full">
-      <body className={`${inter.className} min-h-full bg-neutral-950 text-neutral-100`}>
-        <WalletProviders>
+    <html lang="en" className="dark">
+      <body>
+        <ClientWalletProviders>
           {children}
-        </WalletProviders>
+        </ClientWalletProviders>
       </body>
     </html>
   );
