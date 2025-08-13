@@ -5,6 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Download, Image as ImageIcon, Wand2, Type, Droplets } from "lucide-react";
+import { Navbar } from "@/components/site-navbar";
+
+<div className="min-h-screen bg-neutral-950 text-neutral-100">
+  <Navbar links={{ dex: "https://letsbonk.fun/token/BXrwn2UWEeUAKghP8hatpW4i5AMchdscTzchMYE4bonk", xCommunity: "https://x.com/i/communities/1954506369618391171", telegram: "https://t.me/pareidoliaportal" }} />
+  {/* ... a többi tartalom ... */}
+</div>
 
 type Pos = { x: number; y: number };
 
