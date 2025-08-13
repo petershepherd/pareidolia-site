@@ -3,8 +3,10 @@ import React, { useEffect, useRef, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Download, Image as ImageIcon, Wand2, Type, Droplets } from "lucide-react";
+// (Ha nem használod őket, nyugodtan töröld a következő két importot:)
+// import { Badge } from "@/components/ui/badge";
+// import { Droplets } from "lucide-react";
+import { Download, Image as ImageIcon, Wand2, Type } from "lucide-react";
 import { Navbar } from "@/components/site-navbar";
 
 type Pos = { x: number; y: number };
@@ -17,7 +19,7 @@ export default function MemeToolPage() {
   const [topText, setTopText] = useState<string>("");
   const [bottomText, setBottomText] = useState<string>("");
   const [freeText, setFreeText] = useState<string>("");
-  const [freePos, setFreePos] = useState<Pos>({ x: 0.5, y: 0.6 }); // relatív (0..1)
+  const [freePos, setFreePos] = useState<Pos>({ x: 0.5, y: 0.6 }); // relative (0..1)
 
   const [fontSize, setFontSize] = useState<number>(48);
   const [strokeWidth, setStrokeWidth] = useState<number>(4);
@@ -28,7 +30,7 @@ export default function MemeToolPage() {
   const [wmEnabled, setWmEnabled] = useState<boolean>(true);
   const [wmText, setWmText] = useState<string>("$PAREIDOLIA");
   const [wmOpacity, setWmOpacity] = useState<number>(0.12);
-  const [wmScale, setWmScale] = useState<number>(1); // 1 = alap diagonál méret
+  const [wmScale, setWmScale] = useState<number>(1); // 1 = base diagonal size
 
   // Canvas refs
   const canvasPreviewRef = useRef<HTMLCanvasElement | null>(null);
@@ -42,7 +44,7 @@ export default function MemeToolPage() {
     const img = new Image();
     img.onload = () => {
       setImgEl(img);
-      // beállítjuk a render méretet az arány megtartásával (max 1600 egyik oldalon)
+      // keep aspect ratio, max 1600 on longer side
       const maxSide = 1600;
       let w = img.width;
       let h = img.height;
@@ -60,7 +62,7 @@ export default function MemeToolPage() {
     img.src = url;
   };
 
-  // Draw helper
+  // Text draw helper
   const drawText = (
     ctx: CanvasRenderingContext2D,
     text: string,
@@ -115,6 +117,7 @@ export default function MemeToolPage() {
     ctx.restore();
   };
 
+  // Watermark drawer
   const drawWatermark = (
     ctx: CanvasRenderingContext2D,
     txt: string,
@@ -128,7 +131,7 @@ export default function MemeToolPage() {
     ctx.globalAlpha = Math.max(0, Math.min(1, opacity));
     ctx.translate(w / 2, h / 2);
     ctx.rotate((-30 * Math.PI) / 180);
-    const base = Math.sqrt(w * w + h * h); // átló
+    const base = Math.sqrt(w * w + h * h); // diagonal
     const fontPx = Math.max(24, Math.round((base / 12) * scale));
     ctx.font = `800 ${fontPx}px Inter, Anton, Impact, Arial, sans-serif`;
     ctx.textAlign = "center";
@@ -141,6 +144,7 @@ export default function MemeToolPage() {
     ctx.restore();
   };
 
+  // Main draw
   const drawPreview = () => {
     const canvas = canvasPreviewRef.current;
     if (!canvas || !imgEl) return;
@@ -187,7 +191,7 @@ export default function MemeToolPage() {
       );
     }
 
-    // free text (draggable via sliders)
+    // free text
     if (freeText.trim()) {
       const fx = Math.round(freePos.x * w);
       const fy = Math.round(freePos.y * h);
@@ -216,157 +220,166 @@ export default function MemeToolPage() {
 
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-100">
-  <Navbar links={{ dex: "https://letsbonk.fun/token/BXrwn2UWEeUAKghP8hatpW4i5AMchdscTzchMYE4bonk", xCommunity: "https://x.com/i/communities/1954506369618391171", telegram: "https://t.me/pareidoliaportal" }} />
-  {/* ... a többi tartalom ... */}
-</div>
-    <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-10">
-      <div className="mb-8">
-        <h1 className="text-2xl sm:text-3xl font-bold">PAREIDOLIA Meme Generator</h1>
-        <p className="text-neutral-300 mt-1">Add captions and a $PAREIDOLIA watermark to your images — then download and share.</p>
-      </div>
+      {/* NAVBAR */}
+      <Navbar
+        links={{
+          dex: "https://letsbonk.fun/token/BXrwn2UWEeUAKghP8hatpW4i5AMchdscTzchMYE4bonk",
+          xCommunity: "https://x.com/i/communities/1954506369618391171",
+          telegram: "https://t.me/pareidoliaportal",
+        }}
+      />
 
-      <div className="grid gap-6 md:grid-cols-5">
-        {/* Controls */}
-        <Card className="md:col-span-2 bg-white/5 border-white/10 rounded-2xl">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Wand2 className="h-5 w-5" /> Controls
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-5">
-            {/* Image upload */}
-            <div className="space-y-2">
-              <label className="text-xs text-neutral-400 flex items-center gap-2">
-                <ImageIcon className="h-4 w-4" /> Image
-              </label>
-              <Input type="file" accept="image/*" onChange={(e) => onFile(e.target.files?.[0] || undefined)} />
-              {!imgSrc && <p className="text-xs text-neutral-500">Choose a photo (clouds, foam, rocks…)</p>}
-            </div>
+      {/* CONTENT */}
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-10">
+        <div className="mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold">PAREIDOLIA Meme Generator</h1>
+          <p className="text-neutral-300 mt-1">
+            Add captions and a $PAREIDOLIA watermark to your images — then download and share.
+          </p>
+        </div>
 
-            {/* Texts */}
-            <div className="space-y-2">
-              <label className="text-xs text-neutral-400 flex items-center gap-2">
-                <Type className="h-4 w-4" /> Captions
-              </label>
-              <Input placeholder="Top text (optional)" value={topText} onChange={(e) => setTopText(e.target.value)} />
-              <Input placeholder="Bottom text (optional)" value={bottomText} onChange={(e) => setBottomText(e.target.value)} />
-              <Input placeholder="Free text (optional)" value={freeText} onChange={(e) => setFreeText(e.target.value)} />
-              {freeText && (
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-xs text-neutral-500">Free text X</label>
-                    <input
-                      type="range"
-                      min={0}
-                      max={100}
-                      value={Math.round(freePos.x * 100)}
-                      onChange={(e) => setFreePos((p) => ({ ...p, x: Number(e.target.value) / 100 }))}
-                      className="w-full"
-                    />
+        <div className="grid gap-6 md:grid-cols-5">
+          {/* Controls */}
+          <Card className="md:col-span-2 bg-white/5 border-white/10 rounded-2xl">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Wand2 className="h-5 w-5" /> Controls
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-5">
+              {/* Image upload */}
+              <div className="space-y-2">
+                <label className="text-xs text-neutral-400 flex items-center gap-2">
+                  <ImageIcon className="h-4 w-4" /> Image
+                </label>
+                <Input type="file" accept="image/*" onChange={(e) => onFile(e.target.files?.[0] || undefined)} />
+                {!imgSrc && <p className="text-xs text-neutral-500">Choose a photo (clouds, foam, rocks…)</p>}
+              </div>
+
+              {/* Texts */}
+              <div className="space-y-2">
+                <label className="text-xs text-neutral-400 flex items-center gap-2">
+                  <Type className="h-4 w-4" /> Captions
+                </label>
+                <Input placeholder="Top text (optional)" value={topText} onChange={(e) => setTopText(e.target.value)} />
+                <Input placeholder="Bottom text (optional)" value={bottomText} onChange={(e) => setBottomText(e.target.value)} />
+                <Input placeholder="Free text (optional)" value={freeText} onChange={(e) => setFreeText(e.target.value)} />
+                {freeText && (
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs text-neutral-500">Free text X</label>
+                      <input
+                        type="range"
+                        min={0}
+                        max={100}
+                        value={Math.round(freePos.x * 100)}
+                        onChange={(e) => setFreePos((p) => ({ ...p, x: Number(e.target.value) / 100 }))}
+                        className="w-full"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-neutral-500">Free text Y</label>
+                      <input
+                        type="range"
+                        min={0}
+                        max={100}
+                        value={Math.round(freePos.y * 100)}
+                        onChange={(e) => setFreePos((p) => ({ ...p, y: Number(e.target.value) / 100 }))}
+                        className="w-full"
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <label className="text-xs text-neutral-500">Free text Y</label>
-                    <input
-                      type="range"
-                      min={0}
-                      max={100}
-                      value={Math.round(freePos.y * 100)}
-                      onChange={(e) => setFreePos((p) => ({ ...p, y: Number(e.target.value) / 100 }))}
-                      className="w-full"
-                    />
-                  </div>
+                )}
+              </div>
+
+              {/* Styles */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs text-neutral-500">Font size</label>
+                  <input
+                    type="range"
+                    min={18}
+                    max={128}
+                    value={fontSize}
+                    onChange={(e) => setFontSize(Number(e.target.value))}
+                    className="w-full"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-neutral-500">Stroke width</label>
+                  <input
+                    type="range"
+                    min={0}
+                    max={12}
+                    value={strokeWidth}
+                    onChange={(e) => setStrokeWidth(Number(e.target.value))}
+                    className="w-full"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-neutral-500">Fill color</label>
+                  <input type="color" value={fill} onChange={(e) => setFill(e.target.value)} className="w-full h-9 p-1 rounded" />
+                </div>
+                <div>
+                  <label className="text-xs text-neutral-500">Stroke color</label>
+                  <input type="color" value={stroke} onChange={(e) => setStroke(e.target.value)} className="w-full h-9 p-1 rounded" />
+                </div>
+              </div>
+
+              {/* Watermark */}
+              <div>
+                <label className="text-xs text-neutral-500">Opacity ({wmOpacity.toFixed(2)})</label>
+                <input
+                  type="range"
+                  min={0.5} // was 0, now 0.5
+                  max={1}
+                  step={0.01}
+                  value={wmOpacity}
+                  onChange={(e) => setWmOpacity(Number(e.target.value))}
+                  className="w-full"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-neutral-500">Scale ({wmScale.toFixed(2)})</label>
+                <input
+                  type="range"
+                  min={0.5} // lower bound 0.5
+                  max={2}
+                  step={0.05}
+                  value={wmScale}
+                  onChange={(e) => setWmScale(Number(e.target.value))}
+                  className="w-full"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <Button onClick={drawPreview} variant="outline" className="rounded-2xl">
+                  Refresh
+                </Button>
+                <Button onClick={download} className="rounded-2xl">
+                  <Download className="h-4 w-4 mr-2" /> Download PNG
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Preview */}
+          <Card className="md:col-span-3 bg-white/5 border-white/10 rounded-2xl">
+            <CardHeader>
+              <CardTitle>Preview</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="relative w-full">
+                <canvas ref={canvasPreviewRef} className="w-full h-auto rounded-xl border border-white/10 bg-black" />
+              </div>
+              {!imgSrc && (
+                <div className="mt-4 text-sm text-neutral-400">
+                  Tip: start by choosing an image — clouds, coffee foam, rocks, trees… then add text and watermark.
                 </div>
               )}
-            </div>
-
-            {/* Styles */}
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs text-neutral-500">Font size</label>
-                <input
-                  type="range"
-                  min={18}
-                  max={128}
-                  value={fontSize}
-                  onChange={(e) => setFontSize(Number(e.target.value))}
-                  className="w-full"
-                />
-              </div>
-              <div>
-                <label className="text-xs text-neutral-500">Stroke width</label>
-                <input
-                  type="range"
-                  min={0}
-                  max={12}
-                  value={strokeWidth}
-                  onChange={(e) => setStrokeWidth(Number(e.target.value))}
-                  className="w-full"
-                />
-              </div>
-              <div>
-                <label className="text-xs text-neutral-500">Fill color</label>
-                <input type="color" value={fill} onChange={(e) => setFill(e.target.value)} className="w-full h-9 p-1 rounded" />
-              </div>
-              <div>
-                <label className="text-xs text-neutral-500">Stroke color</label>
-                <input type="color" value={stroke} onChange={(e) => setStroke(e.target.value)} className="w-full h-9 p-1 rounded" />
-              </div>
-            </div>
-
-            {/* Watermark */}
-            <div>
-  <label className="text-xs text-neutral-500">Opacity ({wmOpacity.toFixed(2)})</label>
-  <input
-    type="range"
-    min={0.5} // 0 helyett 0.5
-    max={1}
-    step={0.01}
-    value={wmOpacity}
-    onChange={(e) => setWmOpacity(Number(e.target.value))}
-    className="w-full"
-  />
-</div>
-<div>
-  <label className="text-xs text-neutral-500">Scale ({wmScale.toFixed(2)})</label>
-  <input
-    type="range"
-    min={0.5} // 0.5 marad
-    max={2}
-    step={0.05}
-    value={wmScale}
-    onChange={(e) => setWmScale(Number(e.target.value))}
-    className="w-full"
-  />
-</div>
-
-
-            <div className="flex items-center justify-end gap-2 pt-2">
-              <Button onClick={drawPreview} variant="outline" className="rounded-2xl">
-                Refresh
-              </Button>
-              <Button onClick={download} className="rounded-2xl">
-                <Download className="h-4 w-4 mr-2" /> Download PNG
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Preview */}
-        <Card className="md:col-span-3 bg-white/5 border-white/10 rounded-2xl">
-          <CardHeader>
-            <CardTitle>Preview</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="relative w-full">
-              <canvas ref={canvasPreviewRef} className="w-full h-auto rounded-xl border border-white/10 bg-black" />
-            </div>
-            {!imgSrc && (
-              <div className="mt-4 text-sm text-neutral-400">
-                Tip: start by choosing an image — clouds, coffee foam, rocks, trees… then add text and watermark.
-              </div>
-            )}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
