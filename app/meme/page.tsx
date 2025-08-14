@@ -3,9 +3,6 @@ import React, { useEffect, useRef, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-// (Ha nem használod őket, nyugodtan töröld a következő két importot:)
-// import { Badge } from "@/components/ui/badge";
-// import { Droplets } from "lucide-react";
 import { Download, Image as ImageIcon, Wand2, Type } from "lucide-react";
 import { Navbar } from "@/components/site-navbar";
 
@@ -26,11 +23,11 @@ export default function MemeToolPage() {
   const [fill, setFill] = useState<string>("#ffffff");
   const [stroke, setStroke] = useState<string>("#000000");
 
-  // Watermark
+  // Watermark (bottom-right, horizontal)
   const [wmEnabled, setWmEnabled] = useState<boolean>(true);
   const [wmText, setWmText] = useState<string>("$PAREIDOLIA");
   const [wmOpacity, setWmOpacity] = useState<number>(0.12);
-  const [wmScale, setWmScale] = useState<number>(1); // 1 = base diagonal size
+  const [wmScale, setWmScale] = useState<number>(1); // relative to min(w,h)
 
   // Canvas refs
   const canvasPreviewRef = useRef<HTMLCanvasElement | null>(null);
@@ -117,7 +114,12 @@ export default function MemeToolPage() {
     ctx.restore();
   };
 
-  // Watermark drawer
+  /**
+   * Watermark drawer — bottom-right corner, horizontal, subtle.
+   * - Uses wmOpacity for alpha
+   * - Uses wmScale relative to min(w, h)
+   * - Constrains to max 45% of canvas width for readability
+   */
   const drawWatermark = (
     ctx: CanvasRenderingContext2D,
     txt: string,
@@ -128,19 +130,45 @@ export default function MemeToolPage() {
   ) => {
     if (!txt) return;
     ctx.save();
-    ctx.globalAlpha = Math.max(0, Math.min(1, opacity));
-    ctx.translate(w / 2, h / 2);
-    ctx.rotate((-30 * Math.PI) / 180);
-    const base = Math.sqrt(w * w + h * h); // diagonal
-    const fontPx = Math.max(24, Math.round((base / 12) * scale));
+
+    // base size from min dimension; tweak multiplier for taste
+    const base = Math.min(w, h);
+    let fontPx = Math.max(16, Math.round((base / 24) * scale));
+
     ctx.font = `800 ${fontPx}px Inter, Anton, Impact, Arial, sans-serif`;
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    const grad = ctx.createLinearGradient(-w, 0, w, 0);
-    grad.addColorStop(0, "rgba(255,255,255,0.9)");
-    grad.addColorStop(1, "rgba(255,255,255,0.6)");
-    ctx.fillStyle = grad;
-    ctx.fillText(txt, 0, 0);
+
+    // Constrain text width to at most ~45% of canvas width
+    const maxWidth = w * 0.45;
+    let metrics = ctx.measureText(txt);
+    if (metrics.width > maxWidth) {
+      const shrink = maxWidth / metrics.width;
+      fontPx = Math.max(14, Math.floor(fontPx * shrink));
+      ctx.font = `800 ${fontPx}px Inter, Anton, Impact, Arial, sans-serif`;
+      metrics = ctx.measureText(txt);
+    }
+
+    const pad = Math.round(base * 0.02);
+    const x = w - pad; // right inner edge
+    const y = h - pad; // bottom inner edge
+
+    ctx.globalAlpha = Math.max(0, Math.min(1, opacity));
+    ctx.textAlign = "right";
+    ctx.textBaseline = "bottom";
+
+    // Subtle outline + shadow to avoid blocking content while maintaining legibility
+    ctx.lineWidth = Math.max(1, Math.round(fontPx * 0.08));
+    ctx.strokeStyle = "rgba(0,0,0,0.6)";
+    ctx.shadowColor = "rgba(0,0,0,0.35)";
+    ctx.shadowBlur = Math.round(fontPx * 0.15);
+    ctx.shadowOffsetX = Math.round(fontPx * 0.06);
+    ctx.shadowOffsetY = Math.round(fontPx * 0.06);
+
+    ctx.strokeText(txt, x, y);
+
+    // Fill (slightly off-white so it's not too stark)
+    ctx.fillStyle = "rgba(255,255,255,0.9)";
+    ctx.fillText(txt, x, y);
+
     ctx.restore();
   };
 
@@ -170,7 +198,19 @@ export default function MemeToolPage() {
 
     // top text
     if (topText.trim()) {
-      drawText(ctx, topText.toUpperCase(), w / 2, Math.round(h * 0.04), fontSize, fill, stroke, strokeWidth, "center", "top", wrap);
+      drawText(
+        ctx,
+        topText.toUpperCase(),
+        w / 2,
+        Math.round(h * 0.04),
+        fontSize,
+        fill,
+        stroke,
+        strokeWidth,
+        "center",
+        "top",
+        wrap
+      );
     }
 
     // bottom text
@@ -198,7 +238,7 @@ export default function MemeToolPage() {
       drawText(ctx, freeText, fx, fy, fontSize, fill, stroke, strokeWidth, "center", "middle", wrap * 0.8);
     }
 
-    // watermark
+    // watermark (now bottom-right + horizontal)
     if (wmEnabled) {
       drawWatermark(ctx, wmText, w, h, wmOpacity, wmScale);
     }
@@ -207,7 +247,21 @@ export default function MemeToolPage() {
   useEffect(() => {
     drawPreview();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [imgEl, topText, bottomText, freeText, freePos, fontSize, strokeWidth, fill, stroke, wmEnabled, wmText, wmOpacity, wmScale]);
+  }, [
+    imgEl,
+    topText,
+    bottomText,
+    freeText,
+    freePos,
+    fontSize,
+    strokeWidth,
+    fill,
+    stroke,
+    wmEnabled,
+    wmText,
+    wmOpacity,
+    wmScale,
+  ]);
 
   const download = () => {
     const c = canvasPreviewRef.current;
@@ -331,7 +385,7 @@ export default function MemeToolPage() {
                 <label className="text-xs text-neutral-500">Opacity ({wmOpacity.toFixed(2)})</label>
                 <input
                   type="range"
-                  min={0.5} // was 0, now 0.5
+                  min={0.5}
                   max={1}
                   step={0.01}
                   value={wmOpacity}
@@ -343,7 +397,7 @@ export default function MemeToolPage() {
                 <label className="text-xs text-neutral-500">Scale ({wmScale.toFixed(2)})</label>
                 <input
                   type="range"
-                  min={0.5} // lower bound 0.5
+                  min={0.5}
                   max={2}
                   step={0.05}
                   value={wmScale}
