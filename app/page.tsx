@@ -8,7 +8,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Copy, Check, ExternalLink, Twitter, Send, Link as LinkIcon } from "lucide-react";
-import { Navbar } from "@/components/site-navbar";
 
 /* ------------------------------- LINKS & TOKEN ------------------------------- */
 
@@ -36,9 +35,6 @@ export default function Page() {
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-100 selection:bg-cyan-500/40 selection:text-white">
       <AnimatedBackground />
-
-      {/* NAVBAR – KÖZÖS KOMPONENS */}
-      <Navbar links={{ dex: LINKS.dex, xCommunity: LINKS.xCommunity, telegram: LINKS.telegram }} />
 
       {/* Secret typing unlock (contract typing reward) */}
       <SecretTypeUnlock
