@@ -1,13 +1,12 @@
 {
   "submissions": [
-    // példa elem (később UI-ból kerül ide)
-    // {
-    //   "id": "tw-1955766797031850098",
-    //   "tweetUrl": "https://x.com/pareidolia_SOL/status/1955766797031850098",
-    //   "wallet": "4VsX...rxon",
-    //   "submittedAt": "2025-08-16T01:00:00.000Z",
-    //   "approved": false,
-    //   "metrics": { "like": 0, "retweet": 0, "reply": 0, "quote": 0 }
-    // }
+    {
+      "id": "tw-1955766797031850098",
+      "tweetUrl": "https://x.com/pareidolia_SOL/status/1955766797031850098",
+      "wallet": "4VsXDKquJQpfUxNcE46T2dzvwWQWGasrS7MCucBErxon",
+      "submittedAt": "2025-08-16T01:00:00.000Z",
+      "approved": false,
+      "metrics": { "like": 0, "retweet": 0, "reply": 0, "quote": 0 }
+    }
   ]
 }
