@@ -21,7 +21,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* Wallet context for the whole app */}
         <WalletProviders>
           {/* Global navbar on all pages */}
-          <Navbar links={LINKS} showAdmin />
+          <Navbar links={LINKS} />
           <main className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
             {children}
           </main>
