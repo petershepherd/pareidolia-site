@@ -1,246 +1,276 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
-import { WalletProviders } from "@/components/solana/WalletProviders";
+import React from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
-import type { Contest, ContestFile } from "@/components/contest/types";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { format } from "date-fns";
 
-const allowed = (addr?: string | null) => {
-  if (!addr) return false;
-  const list = (process.env.NEXT_PUBLIC_ALLOWED_ADMIN_WALLETS || "").split(",").map((s) => s.trim());
-  return list.some((x) => x && x.toLowerCase() === addr.toLowerCase());
+type Contest = {
+  id: string;
+  title: string;
+  start: string; // YYYY-MM-DD
+  end: string;   // YYYY-MM-DD
+  images: string[];
+  tweetTemplate?: string;
 };
 
-export default function AdminContestPage() {
-  return (
-    <WalletProviders>
-      <AdminInner />
-    </WalletProviders>
-  );
+type ContestDB = {
+  contests: Contest[];
+};
+
+function ymdUTC(d = new Date()) {
+  const t = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+  const y = t.getUTCFullYear();
+  const m = String(t.getUTCMonth() + 1).padStart(2, "0");
+  const dd = String(t.getUTCDate()).padStart(2, "0");
+  return `${y}-${m}-${dd}`;
 }
 
-function AdminInner() {
-  const { publicKey } = useWallet();
-  const address = useMemo(() => (publicKey ? publicKey.toBase58() : ""), [publicKey]);
+function slugify(s: string) {
+  return s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+}
 
-  const [pin, setPin] = useState("");
-  const [cfg, setCfg] = useState<ContestFile>({ contests: [], submissions: [] });
-  const [loading, setLoading] = useState(false);
-  const [msg, setMsg] = useState<string>("");
+export default function AdminContestPage() {
+  const { publicKey, connected } = useWallet();
+  const [pin, setPin] = React.useState("");
+  const [items, setItems] = React.useState<Contest[]>([]);
+  const [loading, setLoading] = React.useState(false);
+  const [saving, setSaving] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+  const [okMsg, setOkMsg] = React.useState<string | null>(null);
 
-  const canAdmin = allowed(address);
-
-  useEffect(() => {
+  // betöltjük a meglévő contest listát
+  React.useEffect(() => {
+    let gone = false;
     (async () => {
       try {
-        const r = await fetch("/api/contest/get", { cache: "no-store" });
-        const j = await r.json();
-        setCfg(j);
-      } catch (e) {
-        console.error(e);
+        setLoading(true);
+        const res = await fetch("/api/contest/get", { cache: "no-store" });
+        if (!res.ok) throw new Error(`GET /api/contest/get failed: ${res.status}`);
+        const db: ContestDB = await res.json();
+        if (!gone) setItems(db?.contests || []);
+      } catch (e: any) {
+        if (!gone) setError(e?.message || "Failed to load contests");
+      } finally {
+        if (!gone) setLoading(false);
       }
     })();
+    return () => { gone = true; };
   }, []);
 
   const addContest = () => {
-    const now = new Date();
-    const id = `${format(now, "yyyy-MM-dd")}-${Math.random().toString(36).slice(2, 5)}`;
-    const c: Contest = {
-      id,
-      title: "Daily Meme Prompt",
-      description: "Make a meme from these image(s) and post to X. Submit the tweet ID below.",
-      images: [{ url: "https://example.com/your-image.jpg" }],
-      activeFrom: new Date().toISOString(),
-      activeTo: new Date(Date.now() + 24 * 3600 * 1000).toISOString(),
-      minSubmissions: 5,
-      tweetTemplate: "Seeing faces in things? Join #PAREIDOLIA 💫 https://www.illusionof.life",
+    const today = ymdUTC();
+    const newItem: Contest = {
+      id: `ct-${today}-${Math.random().toString(36).slice(2, 8)}`,
+      title: "",
+      start: today,
+      end: today,
+      images: [""], // adjunk első üres mezőt
+      tweetTemplate: "",
     };
-    setCfg((c0) => ({ ...c0, contests: [c, ...c0.contests] }));
+    setItems((prev) => [...prev, newItem]);
   };
 
-  const save = async () => {
-    setLoading(true); setMsg("");
+  const removeContest = (idx: number) => {
+    setItems((prev) => prev.filter((_, i) => i !== idx));
+  };
+
+  const updateField = (idx: number, key: keyof Contest, value: string) => {
+    setItems((prev) => {
+      const next = [...prev];
+      (next[idx] as any)[key] = value;
+      if (key === "title" && !next[idx].id) {
+        next[idx].id = `ct-${slugify(value)}-${Math.random().toString(36).slice(2, 6)}`;
+      }
+      return next;
+    });
+  };
+
+  const addImage = (idx: number) => {
+    setItems((prev) => {
+      const next = [...prev];
+      next[idx].images = [...(next[idx].images || []), ""];
+      return next;
+    });
+  };
+
+  const updateImage = (cIdx: number, iIdx: number, url: string) => {
+    setItems((prev) => {
+      const next = [...prev];
+      const imgs = [...(next[cIdx].images || [])];
+      imgs[iIdx] = url;
+      next[cIdx].images = imgs;
+      return next;
+    });
+  };
+
+  const removeImage = (cIdx: number, iIdx: number) => {
+    setItems((prev) => {
+      const next = [...prev];
+      next[cIdx].images = (next[cIdx].images || []).filter((_, j) => j !== iIdx);
+      if (next[cIdx].images.length === 0) next[cIdx].images = [""];
+      return next;
+    });
+  };
+
+  const onSave = async () => {
+    setError(null);
+    setOkMsg(null);
+
+    if (!connected || !publicKey) {
+      setError("Connect the admin wallet first.");
+      return;
+    }
+    if (!pin.trim()) {
+      setError("Enter the admin PIN.");
+      return;
+    }
+
+    // minimális validáció: cím, dátum, legalább 1 kép (nem üres)
+    for (const c of items) {
+      if (!c.title.trim()) return setError("Each contest needs a title.");
+      if (!c.start || !c.end) return setError("Each contest needs start and end dates.");
+      const imgs = (c.images || []).filter(Boolean);
+      if (imgs.length === 0) return setError("Each contest needs at least one image URL.");
+    }
+
     try {
-      const r = await fetch("/api/contest/save", {
+      setSaving(true);
+      const res = await fetch("/api/contest/save", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "x-admin-pin": pin },
-        body: JSON.stringify(cfg),
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          wallet: publicKey.toBase58(),
+          pin: pin.trim(),
+          contests: items,
+        }),
       });
-      const j = await r.json();
-      if (!r.ok) throw new Error(j?.error || "Save failed");
-      setMsg("Saved to GitHub ✅");
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        throw new Error(j?.error || `Save failed: ${res.status}`);
+      }
+      setOkMsg("Saved to GitHub.");
     } catch (e: any) {
-      setMsg(String(e?.message || e));
+      setError(e?.message || "Save failed");
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
-  if (!canAdmin) {
-    return (
-      <div className="mx-auto max-w-3xl p-6">
-        <h1 className="text-2xl font-bold mb-4">Admin – Meme Contests</h1>
-        <p className="text-neutral-400 mb-4">Connect an admin wallet to continue.</p>
-        <WalletMultiButton />
-      </div>
-    );
-  }
-
   return (
-    <div className="mx-auto max-w-5xl p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Admin – Meme Contests</h1>
-        <WalletMultiButton />
-      </div>
+    <div className="min-h-screen bg-neutral-950 text-neutral-100 py-10">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+        <h1 className="text-3xl font-bold mb-2">Admin — Meme Contest</h1>
+        <p className="text-neutral-400 mb-6">
+          Create or edit daily/weekly image prompts for the meme contest.
+        </p>
 
-      <Card className="bg-white/5 border-white/10">
-        <CardHeader><CardTitle>PIN</CardTitle></CardHeader>
-        <CardContent className="flex items-center gap-3">
-          <Input placeholder="6-char PIN" value={pin} onChange={(e) => setPin(e.target.value)} className="max-w-xs" />
-          <Button onClick={save} disabled={loading || pin.length < 6}>{loading ? "Saving..." : "Save to GitHub"}</Button>
-          {msg && <span className="text-sm text-neutral-400">{msg}</span>}
-        </CardContent>
-      </Card>
-
-      <Card className="bg-white/5 border-white/10">
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Contests</CardTitle>
-          <Button onClick={addContest}>Add Contest</Button>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {cfg.contests.map((c, idx) => (
-            <div key={c.id} className="grid md:grid-cols-2 gap-3 border border-white/10 rounded-xl p-3">
-              <div className="space-y-2">
-                <label className="text-xs text-neutral-400">ID</label>
-                <Input value={c.id} onChange={(e) => update(idx, { id: e.target.value })} />
-                <label className="text-xs text-neutral-400">Title</label>
-                <Input value={c.title} onChange={(e) => update(idx, { title: e.target.value })} />
-                <label className="text-xs text-neutral-400">Description</label>
-                <Input value={c.description || ""} onChange={(e) => update(idx, { description: e.target.value })} />
-                <label className="text-xs text-neutral-400">Tweet Template</label>
-                <Input value={c.tweetTemplate || ""} onChange={(e) => update(idx, { tweetTemplate: e.target.value })} />
+        <Card className="bg-white/5 border-white/10 rounded-2xl mb-6">
+          <CardHeader>
+            <CardTitle>Admin Auth</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="grid sm:grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs text-neutral-400">Connected wallet</label>
+                <Input
+                  value={publicKey ? publicKey.toBase58() : "— not connected —"}
+                  readOnly
+                />
               </div>
-              <div className="space-y-2">
-                <label className="text-xs text-neutral-400">Active From</label>
-                <Input type="datetime-local" value={toLocal(c.activeFrom)} onChange={(e) => update(idx, { activeFrom: fromLocal(e.target.value) })} />
-                <label className="text-xs text-neutral-400">Active To</label>
-                <Input type="datetime-local" value={toLocal(c.activeTo)} onChange={(e) => update(idx, { activeTo: fromLocal(e.target.value) })} />
-                <label className="text-xs text-neutral-400">Min Submissions</label>
-                <Input type="number" value={c.minSubmissions || 0} onChange={(e) => update(idx, { minSubmissions: Number(e.target.value) })} />
-                <div className="space-y-1">
-                  <label className="text-xs text-neutral-400">Images (URLs)</label>
-                  {c.images.map((im, i2) => (
-                    <div key={i2} className="flex gap-2">
-                      <Input value={im.url} onChange={(e) => updateImage(idx, i2, { url: e.target.value })} />
-                      <Button variant="outline" onClick={() => removeImage(idx, i2)}>Del</Button>
-                    </div>
-                  ))}
-                  <Button variant="secondary" onClick={() => addImage(idx)}>+ Image</Button>
-                </div>
-                <Button
-  variant="outline"
-  className="border-red-500/40 text-red-400 hover:bg-red-500/10 hover:text-red-300"
-  onClick={() => removeContest(idx)}
->
-  Delete Contest
-</Button>
+              <div>
+                <label className="text-xs text-neutral-400">Admin PIN</label>
+                <Input
+                  value={pin}
+                  onChange={(e) => setPin(e.target.value)}
+                  placeholder="Enter admin PIN"
+                />
               </div>
             </div>
-          ))}
-        </CardContent>
-      </Card>
+            <div className="flex gap-2 justify-end">
+              <Button onClick={onSave} disabled={saving}>
+                {saving ? "Saving…" : "Save to GitHub"}
+              </Button>
+            </div>
+            {error && <div className="text-sm text-rose-400">{error}</div>}
+            {okMsg && <div className="text-sm text-emerald-400">{okMsg}</div>}
+          </CardContent>
+        </Card>
 
-      <Card className="bg-white/5 border-white/10">
-        <CardHeader><CardTitle>Submissions (manual)</CardTitle></CardHeader>
-        <CardContent className="space-y-3">
-          <p className="text-sm text-neutral-400">Paste Tweet IDs + choose contest.</p>
-          {/* Egyszerű form új submission-hoz */}
-          <AddSubmission cfg={cfg} setCfg={setCfg} />
-        </CardContent>
-      </Card>
-    </div>
-  );
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-xl font-semibold">Contests</h2>
+          <Button variant="secondary" onClick={addContest}>+ Add Contest</Button>
+        </div>
 
-  function update(index: number, patch: Partial<Contest>) {
-    setCfg((c0) => {
-      const next = [...c0.contests];
-      next[index] = { ...next[index], ...patch };
-      return { ...c0, contests: next };
-    });
-  }
-  function addImage(index: number) {
-    update(index, { images: [...cfg.contests[index].images, { url: "" }] });
-  }
-  function updateImage(index: number, imgIdx: number, patch: { url?: string; alt?: string }) {
-    setCfg((c0) => {
-      const cc = [...c0.contests];
-      const imgs = [...cc[index].images];
-      imgs[imgIdx] = { ...imgs[imgIdx], ...patch };
-      cc[index].images = imgs;
-      return { ...c0, contests: cc };
-    });
-  }
-  function removeImage(index: number, imgIdx: number) {
-    setCfg((c0) => {
-      const cc = [...c0.contests];
-      cc[index].images = cc[index].images.filter((_, i) => i !== imgIdx);
-      return { ...c0, contests: cc };
-    });
-  }
-  function removeContest(index: number) {
-    setCfg((c0) => ({ ...c0, contests: c0.contests.filter((_, i) => i !== index) }));
-  }
-}
+        {loading ? (
+          <div className="text-neutral-400">Loading…</div>
+        ) : (
+          <div className="space-y-6">
+            {items.map((c, idx) => (
+              <Card key={c.id || idx} className="bg-white/5 border-white/10 rounded-2xl">
+                <CardHeader>
+                  <CardTitle className="flex items-center justify-between">
+                    <span>{c.title || "(untitled)"} <span className="text-xs text-neutral-400 ml-2">{c.id}</span></span>
+                    <Button variant="destructive" onClick={() => removeContest(idx)}>Delete Contest</Button>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid md:grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs text-neutral-400">Title</label>
+                      <Input value={c.title} onChange={(e) => updateField(idx, "title", e.target.value)} placeholder="Contest title" />
+                    </div>
+                    <div>
+                      <label className="text-xs text-neutral-400">ID (optional)</label>
+                      <Input value={c.id} onChange={(e) => updateField(idx, "id", e.target.value)} placeholder="ct-my-slug-xxxx" />
+                    </div>
+                    <div>
+                      <label className="text-xs text-neutral-400">Start (YYYY-MM-DD)</label>
+                      <Input type="date" value={c.start} onChange={(e) => updateField(idx, "start", e.target.value)} />
+                    </div>
+                    <div>
+                      <label className="text-xs text-neutral-400">End (YYYY-MM-DD)</label>
+                      <Input type="date" value={c.end} onChange={(e) => updateField(idx, "end", e.target.value)} />
+                    </div>
+                  </div>
 
-function toLocal(iso: string) {
-  const d = new Date(iso);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-function fromLocal(local: string) {
-  return new Date(local).toISOString();
-}
+                  <div>
+                    <label className="text-xs text-neutral-400">Tweet template (optional)</label>
+                    <Input
+                      value={c.tweetTemplate || ""}
+                      onChange={(e) => updateField(idx, "tweetTemplate", e.target.value)}
+                      placeholder="E.g. 'New PAREIDOLIA meme contest — use the image below and tag @pareidolia_SOL'"
+                    />
+                  </div>
 
-function AddSubmission({ cfg, setCfg }: { cfg: any; setCfg: (f: any) => void }) {
-  const [contestId, setContestId] = useState<string>("");
-  const [tweetUrl, setTweetUrl] = useState<string>("");
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-neutral-300">Images</span>
+                      <div className="flex gap-2">
+                        <Button variant="secondary" onClick={() => addImage(idx)}>+ Image</Button>
+                      </div>
+                    </div>
 
-  const extractId = (u: string) => {
-    // elfogad URL-t vagy nyers ID-t
-    const m = u.match(/status\/(\d+)/);
-    if (m) return m[1];
-    return /^\d+$/.test(u) ? u : "";
-  };
-
-  const add = () => {
-    const id = extractId(tweetUrl.trim());
-    if (!id || !contestId) return;
-    setCfg((c0: any) => ({
-      ...c0,
-      submissions: [{ contestId, tweetId: id }, ...c0.submissions],
-    }));
-    setTweetUrl("");
-  };
-
-  return (
-    <div className="flex flex-col sm:flex-row gap-2">
-      <select
-        value={contestId}
-        onChange={(e) => setContestId(e.target.value)}
-        className="bg-black border border-white/10 rounded-xl px-3 py-2"
-      >
-        <option value="">Choose contest…</option>
-        {cfg.contests.map((c: any) => (
-          <option key={c.id} value={c.id}>{c.title} ({c.id})</option>
-        ))}
-      </select>
-      <Input placeholder="Tweet URL or ID" value={tweetUrl} onChange={(e) => setTweetUrl(e.target.value)} />
-      <Button onClick={add}>Add</Button>
+                    <div className="space-y-2">
+                      {(c.images || []).map((url, iIdx) => (
+                        <div key={`${idx}-${iIdx}`} className="flex items-center gap-2">
+                          <Input
+                            value={url}
+                            onChange={(e) => updateImage(idx, iIdx, e.target.value)}
+                            placeholder="https://… (image url)"
+                          />
+                          <Button variant="destructive" onClick={() => removeImage(idx, iIdx)}>Remove</Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
