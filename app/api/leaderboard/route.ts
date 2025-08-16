@@ -22,7 +22,9 @@ export async function GET() {
     const url = `https://raw.githubusercontent.com/${owner}/${repo}/main/${path}`;
     const cfg = await (await fetch(url, { cache: "no-store" })).json();
 
-    const ids: string[] = Array.from(new Set((cfg.submissions || []).map((s: any) => s.tweetId))).slice(0, 100);
+    const ids = Array.from(
+  new Set((cfg.submissions || []).map((s: any) => String(s.tweetId)))
+).slice(0, 100) as string[];
 
     if (ids.length === 0) return NextResponse.json({ items: [] });
 
