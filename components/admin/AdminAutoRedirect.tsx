@@ -5,13 +5,13 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { useRouter, usePathname } from "next/navigation";
 
 function parseAllowed(): string[] {
+  // NEXT_PUBLIC_* kliensoldalon elérhető; SSR guard csak safety
   if (typeof process === "undefined") return [];
   const raw = process.env.NEXT_PUBLIC_ALLOWED_ADMIN_WALLETS || "";
   return raw
     .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean)
-    .map((s) => s.toLowerCase());
+    .map((s) => s.trim().toLowerCase())
+    .filter(Boolean);
 }
 
 async function verifyPin(pin: string): Promise<boolean> {
@@ -20,6 +20,7 @@ async function verifyPin(pin: string): Promise<boolean> {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ pin }),
+      cache: "no-store",
     });
     if (!res.ok) return false;
     const json = await res.json();
@@ -39,54 +40,51 @@ export default function AdminAutoRedirect() {
   const { publicKey, connected } = useWallet();
   const router = useRouter();
   const pathname = usePathname();
-  const [checked, setChecked] = React.useState(false);
+  const [prompted, setPrompted] = React.useState(false);
+
+  // Stabil, memo-izált kulcs
+  const pk = React.useMemo(
+    () => (publicKey ? publicKey.toBase58().toLowerCase() : undefined),
+    [publicKey]
+  );
 
   React.useEffect(() => {
-    const run = async () => {
-      setChecked(false);
-      const admins = parseAllowed();
-      const pk = publicKey?.toBase58().toLowerCase();
-      const isAdmin = connected && pk ? admins.includes(pk) : false;
+    // csak böngészőben
+    if (typeof window === "undefined") return;
 
-      // Ha már admin oldalon vagyunk, ne pattogjon.
+    const run = async () => {
+      const admins = parseAllowed();
+      const isAdmin = connected && pk ? admins.includes(pk) : false;
       const alreadyOnAdmin = pathname?.startsWith("/admin");
 
-      if (!isAdmin) {
-        setChecked(true);
-        return;
-      }
+      if (!isAdmin) return;
 
-      // session flag
       const key = `pareidolia:admin:${pk}:authed`;
       const authed = sessionStorage.getItem(key) === "1";
 
       if (!authed) {
-        // kérjünk PIN-t (egyszerű prompt a gyors integrációhoz)
+        // csak egyszer promptolunk per mounting/session
+        if (prompted) return;
+        setPrompted(true);
+
         const pin = window.prompt("Enter admin PIN:");
-        if (!pin) {
-          setChecked(true);
-          return;
-        }
+        if (!pin) return;
+
         const ok = await verifyPin(pin);
         if (!ok) {
           alert("Invalid PIN.");
-          setChecked(true);
           return;
         }
         sessionStorage.setItem(key, "1");
       }
 
-      // Redirect admin felületre, ha nem ott vagyunk
       if (!alreadyOnAdmin) {
         router.replace("/admin");
       }
-      setChecked(true);
     };
 
     run();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [connected, publicKey?.toBase58(), pathname]);
+  }, [connected, pk, pathname, router, prompted]);
 
-  // Nem renderel UI-t; csak őrködik
   return null;
 }
