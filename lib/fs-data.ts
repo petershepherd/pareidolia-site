@@ -1,15 +1,27 @@
-import fs from "fs";
+// lib/fs-data.ts
 import path from "path";
+import fs from "fs/promises";
 
-export function repoDataPath(...parts: string[]) {
-  return path.join(process.cwd(), ...parts);
-}
+type ContestsFile = {
+  contests?: any[];
+  submissions?: any[];
+};
 
-export function readJson<T>(p: string, fallback: T): T {
+export async function readContestsFile(): Promise<{
+  contests: any[];
+  submissions: any[];
+}> {
   try {
-    const raw = fs.readFileSync(p, "utf8");
-    return JSON.parse(raw);
+    const p = path.join(process.cwd(), "data", "contests.json");
+    const raw = await fs.readFile(p, "utf8");
+    const json: ContestsFile = JSON.parse(raw);
+    return {
+      contests: Array.isArray(json.contests) ? json.contests : [],
+      submissions: Array.isArray(json.submissions) ? json.submissions : [],
+    };
   } catch {
-    return fallback;
+    // Ha nincs fájl vagy rossz a JSON, térjünk vissza üres struktúrával,
+    // így a frontend nem dől el.
+    return { contests: [], submissions: [] };
   }
 }
