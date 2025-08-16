@@ -13,7 +13,6 @@ import {
   Image as ImageIcon,
   Trophy,
   Upload,
-  Lock,
 } from "lucide-react";
 
 // Wallet connect button (styles are provided by WalletProviders import elsewhere)
@@ -27,7 +26,7 @@ type ExternalLinks = {
 
 type NavbarProps = {
   links?: ExternalLinks;
-  showAdmin?: boolean; // toggle Admin button if you want
+  // showAdmin?: boolean; // ← eltávolítva: nem jelenítünk meg Admin gombot
 };
 
 const DEFAULT_LINKS: ExternalLinks = {
@@ -44,7 +43,7 @@ const INTERNAL_NAV = [
   { href: "/leaderboard", label: "Leaderboard", icon: <Trophy className="h-4 w-4" /> },
 ];
 
-export function Navbar({ links = DEFAULT_LINKS, showAdmin = true }: NavbarProps) {
+export function Navbar({ links = DEFAULT_LINKS }: NavbarProps) {
   const [open, setOpen] = React.useState(false);
   const router = useRouter();
 
@@ -78,21 +77,12 @@ export function Navbar({ links = DEFAULT_LINKS, showAdmin = true }: NavbarProps)
               {item.label}
             </Link>
           ))}
-          {showAdmin && (
-            <button
-              onClick={() => router.push("/admin")}
-              className="inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm text-neutral-300 hover:text-white hover:bg-white/5 transition"
-              title="Admin"
-            >
-              <Lock className="h-4 w-4" />
-              Admin
-            </button>
-          )}
+          {/* NINCS admin gomb – az automatikus redirect intézi */}
         </nav>
 
         {/* Desktop actions (wallet + externals) */}
         <div className="hidden md:flex items-center gap-2">
-          {/* Wallet connect (works for admin auth too) */}
+          {/* Wallet connect (admin auth-hoz is ez kell) */}
           <WalletMultiButton className="!rounded-2xl !bg-white/10 !text-white !border !border-white/20 hover:!bg-white/20" />
 
           <Button asChild variant="outline" className="rounded-2xl border-white/20 text-white hover:bg-white/10">
@@ -139,19 +129,7 @@ export function Navbar({ links = DEFAULT_LINKS, showAdmin = true }: NavbarProps)
                   <span>{item.label}</span>
                 </Link>
               ))}
-              {showAdmin && (
-                <button
-                  onClick={() => {
-                    setOpen(false);
-                    router.push("/admin");
-                  }}
-                  className="flex items-center gap-2 rounded-xl px-3 py-2 text-neutral-200 hover:bg-white/5"
-                  title="Admin"
-                >
-                  <Lock className="h-4 w-4" />
-                  <span>Admin</span>
-                </button>
-              )}
+              {/* NINCS admin gomb mobilon sem */}
             </div>
 
             <div className="mt-3 flex flex-col gap-2">
