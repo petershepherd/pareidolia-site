@@ -42,24 +42,28 @@ export async function writeMemesFile(data: Json): Promise<void> {
   await safeWriteJSON(memesPath, data);
 }
 
-/** ---- KOMPATIBILITÁSI RÉTEG a régi importokhoz ----
- * Ezeket más fájlok már használják: `readJson`, `repoDataPath`.
- * Hagyjuk meg őket, hogy ne kelljen mindenhol átírni az importokat.
- */
+// ---- KOMPATIBILITÁSI RÉTEG a régi importokhoz ----
 
 // Relatív data útvonal feloldása
 export function repoDataPath(rel: string): string {
   return path.join(dataRoot, rel);
 }
 
-// Általános JSON olvasó (fallback-kel)
-export async function readJson(fileRelPath: string, fallback: Json): Promise<Json> {
+// Általános JSON olvasó (GENERIKUS, hogy lehessen readJson<T>-t hívni)
+export async function readJson<T = any>(fileRelPath: string, fallback: T): Promise<T> {
   const full = repoDataPath(fileRelPath);
-  return safeReadJSON(full, fallback);
+  try {
+    const txt = await fs.readFile(full, "utf8");
+    return JSON.parse(txt) as T;
+  } catch {
+    return fallback;
+  }
 }
 
 // Általános JSON író (ha később kellene)
-export async function writeJson(fileRelPath: string, data: Json): Promise<void> {
+export async function writeJson(fileRelPath: string, data: any): Promise<void> {
   const full = repoDataPath(fileRelPath);
-  await safeWriteJSON(full, data);
+  const txt = JSON.stringify(data, null, 2);
+  await fs.mkdir(path.dirname(full), { recursive: true });
+  await fs.writeFile(full, txt, "utf8");
 }
