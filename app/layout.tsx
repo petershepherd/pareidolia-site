@@ -2,6 +2,7 @@ import "./globals.css";
 import type { Metadata } from "next";
 import { WalletProviders } from "@/components/solana/WalletProviders";
 import { Navbar } from "@/components/site-navbar";
+import AdminAutoRedirect from "@/components/admin/AdminAutoRedirect";
 
 export const metadata: Metadata = {
   title: "PAREIDOLIA",
@@ -18,13 +19,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className="bg-neutral-950">
       <body className="min-h-screen bg-neutral-950 text-neutral-100 selection:bg-cyan-500/40 selection:text-white">
-        {/* Wallet context for the whole app */}
         <WalletProviders>
-          {/* Global navbar on all pages */}
-          <Navbar links={LINKS}
-            {/* Auto-redirect admins to /admin when connected & authorized */}
-<AdminAutoRedirect />
-/>
+          {/* Globális navbar minden oldalon */}
+          <Navbar links={LINKS} />
+
+          {/* Adminok automatikus átirányítása, ha wallet + PIN OK */}
+          <AdminAutoRedirect />
+
           <main className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
             {children}
           </main>
