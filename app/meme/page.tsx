@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Download, Image as ImageIcon, Wand2, Type } from "lucide-react";
-import { Navbar } from "@/components/site-navbar";
 
 type Pos = { x: number; y: number };
 
@@ -274,14 +273,6 @@ export default function MemeToolPage() {
 
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-100">
-      {/* NAVBAR */}
-      <Navbar
-        links={{
-          dex: "https://letsbonk.fun/token/BXrwn2UWEeUAKghP8hatpW4i5AMchdscTzchMYE4bonk",
-          xCommunity: "https://x.com/i/communities/1954506369618391171",
-          telegram: "https://t.me/pareidoliaportal",
-        }}
-      />
 
       {/* CONTENT */}
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-10">
