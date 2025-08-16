@@ -2,8 +2,22 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Menu, X, ExternalLink, Twitter, Send, Image as ImageIcon, Trophy, Upload } from "lucide-react";
+import {
+  Menu,
+  X,
+  ExternalLink,
+  Twitter,
+  Send,
+  Image as ImageIcon,
+  Trophy,
+  Upload,
+  Lock,
+} from "lucide-react";
+
+// Wallet connect button (styles are provided by WalletProviders import elsewhere)
+import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 
 type ExternalLinks = {
   dex: string;
@@ -13,6 +27,7 @@ type ExternalLinks = {
 
 type NavbarProps = {
   links?: ExternalLinks;
+  showAdmin?: boolean; // toggle Admin button if you want
 };
 
 const DEFAULT_LINKS: ExternalLinks = {
@@ -29,10 +44,11 @@ const INTERNAL_NAV = [
   { href: "/leaderboard", label: "Leaderboard", icon: <Trophy className="h-4 w-4" /> },
 ];
 
-export function Navbar({ links = DEFAULT_LINKS }: NavbarProps) {
+export function Navbar({ links = DEFAULT_LINKS, showAdmin = true }: NavbarProps) {
   const [open, setOpen] = React.useState(false);
+  const router = useRouter();
 
-  // close on route change (best-effort)
+  // close on hash change (best-effort)
   React.useEffect(() => {
     const onHash = () => setOpen(false);
     window.addEventListener("hashchange", onHash);
@@ -58,14 +74,27 @@ export function Navbar({ links = DEFAULT_LINKS }: NavbarProps) {
               href={item.href}
               className="inline-flex items-center gap-1 rounded-full px-3 py-2 text-sm text-neutral-300 hover:text-white hover:bg-white/5 transition"
             >
-              {item.icon ? item.icon : null}
+              {item.icon ?? null}
               {item.label}
             </Link>
           ))}
+          {showAdmin && (
+            <button
+              onClick={() => router.push("/admin")}
+              className="inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm text-neutral-300 hover:text-white hover:bg-white/5 transition"
+              title="Admin"
+            >
+              <Lock className="h-4 w-4" />
+              Admin
+            </button>
+          )}
         </nav>
 
-        {/* Desktop actions (externals) */}
+        {/* Desktop actions (wallet + externals) */}
         <div className="hidden md:flex items-center gap-2">
+          {/* Wallet connect (works for admin auth too) */}
+          <WalletMultiButton className="!rounded-2xl !bg-white/10 !text-white !border !border-white/20 hover:!bg-white/20" />
+
           <Button asChild variant="outline" className="rounded-2xl border-white/20 text-white hover:bg-white/10">
             <a href={links.dex} target="_blank" rel="noreferrer">
               Buy <ExternalLink className="ml-2 h-4 w-4" />
@@ -106,28 +135,46 @@ export function Navbar({ links = DEFAULT_LINKS }: NavbarProps) {
                   className="flex items-center gap-2 rounded-xl px-3 py-2 text-neutral-200 hover:bg-white/5"
                   onClick={() => setOpen(false)}
                 >
-                  {item.icon ? item.icon : null}
+                  {item.icon ?? null}
                   <span>{item.label}</span>
                 </Link>
               ))}
+              {showAdmin && (
+                <button
+                  onClick={() => {
+                    setOpen(false);
+                    router.push("/admin");
+                  }}
+                  className="flex items-center gap-2 rounded-xl px-3 py-2 text-neutral-200 hover:bg-white/5"
+                  title="Admin"
+                >
+                  <Lock className="h-4 w-4" />
+                  <span>Admin</span>
+                </button>
+              )}
             </div>
 
-            <div className="mt-3 flex flex-wrap items-center gap-2">
-              <Button asChild className="rounded-2xl">
-                <a href={links.dex} target="_blank" rel="noreferrer">
-                  Buy <ExternalLink className="ml-2 h-4 w-4" />
-                </a>
-              </Button>
-              <Button asChild variant="secondary" className="rounded-2xl">
-                <a href={links.xCommunity} target="_blank" rel="noreferrer">
-                  X <Twitter className="ml-2 h-4 w-4" />
-                </a>
-              </Button>
-              <Button asChild variant="ghost" className="rounded-2xl text-neutral-300 hover:text-white">
-                <a href={links.telegram} target="_blank" rel="noreferrer">
-                  Telegram <Send className="ml-2 h-4 w-4" />
-                </a>
-              </Button>
+            <div className="mt-3 flex flex-col gap-2">
+              {/* Wallet on mobile */}
+              <WalletMultiButton className="!rounded-2xl !bg-white/10 !text-white !border !border-white/20 hover:!bg-white/20" />
+
+              <div className="flex flex-wrap items-center gap-2">
+                <Button asChild className="rounded-2xl">
+                  <a href={links.dex} target="_blank" rel="noreferrer">
+                    Buy <ExternalLink className="ml-2 h-4 w-4" />
+                  </a>
+                </Button>
+                <Button asChild variant="secondary" className="rounded-2xl">
+                  <a href={links.xCommunity} target="_blank" rel="noreferrer">
+                    X <Twitter className="ml-2 h-4 w-4" />
+                  </a>
+                </Button>
+                <Button asChild variant="ghost" className="rounded-2xl text-neutral-300 hover:text-white">
+                  <a href={links.telegram} target="_blank" rel="noreferrer">
+                    Telegram <Send className="ml-2 h-4 w-4" />
+                  </a>
+                </Button>
+              </div>
             </div>
           </div>
         </div>
