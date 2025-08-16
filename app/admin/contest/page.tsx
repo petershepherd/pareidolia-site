@@ -142,7 +142,13 @@ function AdminInner() {
                   ))}
                   <Button variant="secondary" onClick={() => addImage(idx)}>+ Image</Button>
                 </div>
-                <Button variant="destructive" onClick={() => removeContest(idx)}>Delete Contest</Button>
+                <Button
+  variant="outline"
+  className="border-red-500/40 text-red-400 hover:bg-red-500/10 hover:text-red-300"
+  onClick={() => removeContest(idx)}
+>
+  Delete Contest
+</Button>
               </div>
             </div>
           ))}
