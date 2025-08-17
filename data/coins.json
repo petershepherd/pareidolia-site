@@ -1,0 +1,19 @@
+{
+  "coins": [
+    {
+      "id": "pareidolia",
+      "symbol": "PAREIDOLIA",
+      "name": "Pareidolia",
+      "description": "The meme coin that turns your brain's pattern-recognition glitch into a movement.",
+      "contractAddress": "BXrwn2UWEeUAKghP8hatpW4i5AMchdscTzchMYE4bonk",
+      "chain": "SOL",
+      "createdAt": "2025-01-13T00:00:00.000Z",
+      "website": "https://www.illusionof.life",
+      "twitter": "https://x.com/i/communities/1954506369618391171",
+      "telegram": "https://t.me/pareidoliaportal",
+      "dexUrl": "https://letsbonk.fun/token/BXrwn2UWEeUAKghP8hatpW4i5AMchdscTzchMYE4bonk",
+      "explorerUrl": "https://solscan.io/token/BXrwn2UWEeUAKghP8hatpW4i5AMchdscTzchMYE4bonk"
+    }
+  ],
+  "burnEvents": []
+}
