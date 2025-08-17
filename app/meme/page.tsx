@@ -11,28 +11,31 @@ export default function MemeToolPage() {
   const [imgSrc, setImgSrc] = useState<string>("");
   const [imgEl, setImgEl] = useState<HTMLImageElement | null>(null);
 
+  // Új: remote URL mező (query-ből vagy manuális)
+  const [remoteUrl, setRemoteUrl] = useState<string>("");
+
   // Text settings
   const [topText, setTopText] = useState<string>("");
   const [bottomText, setBottomText] = useState<string>("");
   const [freeText, setFreeText] = useState<string>("");
-  const [freePos, setFreePos] = useState<Pos>({ x: 0.5, y: 0.6 }); // relative (0..1)
+  const [freePos, setFreePos] = useState<Pos>({ x: 0.5, y: 0.6 });
 
   const [fontSize, setFontSize] = useState<number>(48);
   const [strokeWidth, setStrokeWidth] = useState<number>(4);
   const [fill, setFill] = useState<string>("#ffffff");
   const [stroke, setStroke] = useState<string>("#000000");
 
-  // Watermark (bottom-right, horizontal)
+  // Watermark
   const [wmEnabled, setWmEnabled] = useState<boolean>(true);
   const [wmText, setWmText] = useState<string>("$PAREIDOLIA");
   const [wmOpacity, setWmOpacity] = useState<number>(0.12);
-  const [wmScale, setWmScale] = useState<number>(1); // relative to min(w,h)
+  const [wmScale, setWmScale] = useState<number>(1);
 
-  // Canvas refs
+  // Canvas
   const canvasPreviewRef = useRef<HTMLCanvasElement | null>(null);
   const renderSize = useRef<{ w: number; h: number }>({ w: 1200, h: 1200 });
 
-  // Load selected image
+  // Fájl feltöltés
   const onFile = (f?: File) => {
     if (!f) return;
     const url = URL.createObjectURL(f);
@@ -40,25 +43,74 @@ export default function MemeToolPage() {
     const img = new Image();
     img.onload = () => {
       setImgEl(img);
-      // keep aspect ratio, max 1600 on longer side
-      const maxSide = 1600;
-      let w = img.width;
-      let h = img.height;
-      if (w > h && w > maxSide) {
-        h = Math.round(h * (maxSide / w));
-        w = maxSide;
-      } else if (h >= w && h > maxSide) {
-        w = Math.round(w * (maxSide / h));
-        h = maxSide;
-      }
-      renderSize.current = { w, h };
+      resizeForRender(img);
       drawPreview();
     };
     img.crossOrigin = "anonymous";
     img.src = url;
   };
 
-  // Text draw helper
+  const resizeForRender = (img: HTMLImageElement) => {
+    const maxSide = 1600;
+    let w = img.width;
+    let h = img.height;
+    if (w > h && w > maxSide) {
+      h = Math.round(h * (maxSide / w));
+      w = maxSide;
+    } else if (h >= w && h > maxSide) {
+      w = Math.round(w * (maxSide / h));
+      h = maxSide;
+    }
+    renderSize.current = { w, h };
+  };
+
+  // Remote kép betöltése (fetch → blob → dataURL)
+  const loadRemoteImage = async (url: string) => {
+    if (!url) return;
+    try {
+      const res = await fetch(url);
+      if (!res.ok) {
+        console.error("Remote image fetch failed", res.status);
+        return;
+      }
+      const blob = await res.blob();
+      const fr = new FileReader();
+      fr.onload = () => {
+        const dataUrl = fr.result as string;
+        setImgSrc(dataUrl);
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.onload = () => {
+          setImgEl(img);
+            resizeForRender(img);
+          drawPreview();
+        };
+        img.src = dataUrl;
+      };
+      fr.readAsDataURL(blob);
+    } catch (e) {
+      console.error("Cannot load remote image", e);
+    }
+  };
+
+  // Query param feldolgozás (csak ha nincs már kép)
+  useEffect(() => {
+    if (imgSrc) return;
+    if (typeof window === "undefined") return;
+    const sp = new URLSearchParams(window.location.search);
+    const img = sp.get("img");
+    const caption = sp.get("caption");
+    if (img) {
+      setRemoteUrl(img);
+      loadRemoteImage(img);
+    }
+    if (caption && !bottomText && !topText) {
+      setBottomText(caption);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Szöveg rajzoló
   const drawText = (
     ctx: CanvasRenderingContext2D,
     text: string,
@@ -113,12 +165,6 @@ export default function MemeToolPage() {
     ctx.restore();
   };
 
-  /**
-   * Watermark drawer — bottom-right corner, horizontal, subtle.
-   * - Uses wmOpacity for alpha
-   * - Uses wmScale relative to min(w, h)
-   * - Constrains to max 45% of canvas width for readability
-   */
   const drawWatermark = (
     ctx: CanvasRenderingContext2D,
     txt: string,
@@ -129,14 +175,10 @@ export default function MemeToolPage() {
   ) => {
     if (!txt) return;
     ctx.save();
-
-    // base size from min dimension; tweak multiplier for taste
     const base = Math.min(w, h);
     let fontPx = Math.max(16, Math.round((base / 24) * scale));
-
     ctx.font = `800 ${fontPx}px Inter, Anton, Impact, Arial, sans-serif`;
 
-    // Constrain text width to at most ~45% of canvas width
     const maxWidth = w * 0.45;
     let metrics = ctx.measureText(txt);
     if (metrics.width > maxWidth) {
@@ -147,31 +189,24 @@ export default function MemeToolPage() {
     }
 
     const pad = Math.round(base * 0.02);
-    const x = w - pad; // right inner edge
-    const y = h - pad; // bottom inner edge
+    const x = w - pad;
+    const y = h - pad;
 
     ctx.globalAlpha = Math.max(0, Math.min(1, opacity));
     ctx.textAlign = "right";
     ctx.textBaseline = "bottom";
-
-    // Subtle outline + shadow to avoid blocking content while maintaining legibility
     ctx.lineWidth = Math.max(1, Math.round(fontPx * 0.08));
     ctx.strokeStyle = "rgba(0,0,0,0.6)";
     ctx.shadowColor = "rgba(0,0,0,0.35)";
     ctx.shadowBlur = Math.round(fontPx * 0.15);
     ctx.shadowOffsetX = Math.round(fontPx * 0.06);
     ctx.shadowOffsetY = Math.round(fontPx * 0.06);
-
     ctx.strokeText(txt, x, y);
-
-    // Fill (slightly off-white so it's not too stark)
     ctx.fillStyle = "rgba(255,255,255,0.9)";
     ctx.fillText(txt, x, y);
-
     ctx.restore();
   };
 
-  // Main draw
   const drawPreview = () => {
     const canvas = canvasPreviewRef.current;
     if (!canvas || !imgEl) return;
@@ -181,11 +216,9 @@ export default function MemeToolPage() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // background
     ctx.fillStyle = "#000";
     ctx.fillRect(0, 0, w, h);
 
-    // image fit (contain)
     const ratio = Math.min(w / imgEl.width, h / imgEl.height);
     const iw = imgEl.width * ratio;
     const ih = imgEl.height * ratio;
@@ -195,7 +228,6 @@ export default function MemeToolPage() {
 
     const wrap = Math.min(w, h) * 0.9;
 
-    // top text
     if (topText.trim()) {
       drawText(
         ctx,
@@ -212,7 +244,6 @@ export default function MemeToolPage() {
       );
     }
 
-    // bottom text
     if (bottomText.trim()) {
       const linesHeight = fontSize * 1.2 * Math.ceil(bottomText.split(" ").length / 5);
       drawText(
@@ -230,14 +261,24 @@ export default function MemeToolPage() {
       );
     }
 
-    // free text
     if (freeText.trim()) {
       const fx = Math.round(freePos.x * w);
       const fy = Math.round(freePos.y * h);
-      drawText(ctx, freeText, fx, fy, fontSize, fill, stroke, strokeWidth, "center", "middle", wrap * 0.8);
+      drawText(
+        ctx,
+        freeText,
+        fx,
+        fy,
+        fontSize,
+        fill,
+        stroke,
+        strokeWidth,
+        "center",
+        "middle",
+        wrap * 0.8
+      );
     }
 
-    // watermark (now bottom-right + horizontal)
     if (wmEnabled) {
       drawWatermark(ctx, wmText, w, h, wmOpacity, wmScale);
     }
@@ -273,8 +314,6 @@ export default function MemeToolPage() {
 
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-100">
-
-      {/* CONTENT */}
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-10">
         <div className="mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold">PAREIDOLIA Meme Generator</h1>
@@ -284,7 +323,6 @@ export default function MemeToolPage() {
         </div>
 
         <div className="grid gap-6 md:grid-cols-5">
-          {/* Controls */}
           <Card className="md:col-span-2 bg-white/5 border-white/10 rounded-2xl">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -292,23 +330,69 @@ export default function MemeToolPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-5">
-              {/* Image upload */}
+              {/* Fájl feltöltés */}
               <div className="space-y-2">
                 <label className="text-xs text-neutral-400 flex items-center gap-2">
                   <ImageIcon className="h-4 w-4" /> Image
                 </label>
-                <Input type="file" accept="image/*" onChange={(e) => onFile(e.target.files?.[0] || undefined)} />
-                {!imgSrc && <p className="text-xs text-neutral-500">Choose a photo (clouds, foam, rocks…)</p>}
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => onFile(e.target.files?.[0] || undefined)}
+                />
+                {!imgSrc && (
+                  <p className="text-xs text-neutral-500">
+                    Choose a photo (clouds, foam, rocks…)
+                  </p>
+                )}
               </div>
 
-              {/* Texts */}
+              {/* Remote URL betöltés */}
+              <div className="space-y-2">
+                <label className="text-xs text-neutral-400 flex items-center gap-2">
+                  <ImageIcon className="h-4 w-4" /> Remote Image URL
+                </label>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="https://..."
+                    value={remoteUrl}
+                    onChange={(e) => setRemoteUrl(e.target.value)}
+                  />
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => {
+                      if (remoteUrl) loadRemoteImage(remoteUrl);
+                    }}
+                  >
+                    Betöltés
+                  </Button>
+                </div>
+                <p className="text-xs text-neutral-500">
+                  Illeszd be a contest kép URL-jét, vagy használj fájlfeltöltést.
+                </p>
+              </div>
+
+              {/* Szövegek */}
               <div className="space-y-2">
                 <label className="text-xs text-neutral-400 flex items-center gap-2">
                   <Type className="h-4 w-4" /> Captions
                 </label>
-                <Input placeholder="Top text (optional)" value={topText} onChange={(e) => setTopText(e.target.value)} />
-                <Input placeholder="Bottom text (optional)" value={bottomText} onChange={(e) => setBottomText(e.target.value)} />
-                <Input placeholder="Free text (optional)" value={freeText} onChange={(e) => setFreeText(e.target.value)} />
+                <Input
+                  placeholder="Top text (optional)"
+                  value={topText}
+                  onChange={(e) => setTopText(e.target.value)}
+                />
+                <Input
+                  placeholder="Bottom text (optional)"
+                  value={bottomText}
+                  onChange={(e) => setBottomText(e.target.value)}
+                />
+                <Input
+                  placeholder="Free text (optional)"
+                  value={freeText}
+                  onChange={(e) => setFreeText(e.target.value)}
+                />
                 {freeText && (
                   <div className="grid grid-cols-2 gap-3">
                     <div>
@@ -318,7 +402,9 @@ export default function MemeToolPage() {
                         min={0}
                         max={100}
                         value={Math.round(freePos.x * 100)}
-                        onChange={(e) => setFreePos((p) => ({ ...p, x: Number(e.target.value) / 100 }))}
+                        onChange={(e) =>
+                          setFreePos((p) => ({ ...p, x: Number(e.target.value) / 100 }))
+                        }
                         className="w-full"
                       />
                     </div>
@@ -329,7 +415,9 @@ export default function MemeToolPage() {
                         min={0}
                         max={100}
                         value={Math.round(freePos.y * 100)}
-                        onChange={(e) => setFreePos((p) => ({ ...p, y: Number(e.target.value) / 100 }))}
+                        onChange={(e) =>
+                          setFreePos((p) => ({ ...p, y: Number(e.target.value) / 100 }))
+                        }
                         className="w-full"
                       />
                     </div>
@@ -337,7 +425,7 @@ export default function MemeToolPage() {
                 )}
               </div>
 
-              {/* Styles */}
+              {/* Stílusok */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs text-neutral-500">Font size</label>
@@ -363,17 +451,28 @@ export default function MemeToolPage() {
                 </div>
                 <div>
                   <label className="text-xs text-neutral-500">Fill color</label>
-                  <input type="color" value={fill} onChange={(e) => setFill(e.target.value)} className="w-full h-9 p-1 rounded" />
+                  <input
+                    type="color"
+                    value={fill}
+                    onChange={(e) => setFill(e.target.value)}
+                    className="w-full h-9 p-1 rounded"
+                  />
                 </div>
                 <div>
                   <label className="text-xs text-neutral-500">Stroke color</label>
-                  <input type="color" value={stroke} onChange={(e) => setStroke(e.target.value)} className="w-full h-9 p-1 rounded" />
+                  <input
+                    type="color"
+                    value={stroke}
+                    onChange={(e) => setStroke(e.target.value)}
+                    className="w-full h-9 p-1 rounded"
+                  />
                 </div>
               </div>
 
-              {/* Watermark */}
               <div>
-                <label className="text-xs text-neutral-500">Opacity ({wmOpacity.toFixed(2)})</label>
+                <label className="text-xs text-neutral-500">
+                  Opacity ({wmOpacity.toFixed(2)})
+                </label>
                 <input
                   type="range"
                   min={0.5}
@@ -385,7 +484,9 @@ export default function MemeToolPage() {
                 />
               </div>
               <div>
-                <label className="text-xs text-neutral-500">Scale ({wmScale.toFixed(2)})</label>
+                <label className="text-xs text-neutral-500">
+                  Scale ({wmScale.toFixed(2)})
+                </label>
                 <input
                   type="range"
                   min={0.5}
@@ -397,8 +498,25 @@ export default function MemeToolPage() {
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-2">
-                <Button onClick={drawPreview} variant="outline" className="rounded-2xl">
+              <div className="flex items-center justify-end gap-2 pt-2 flex-wrap">
+                <Button
+                  type="button"
+                  onClick={() => {
+                    setImgSrc("");
+                    setImgEl(null);
+                    setRemoteUrl("");
+                  }}
+                  variant="outline"
+                  className="rounded-2xl"
+                >
+                  Reset
+                </Button>
+                <Button
+                  type="button"
+                  onClick={drawPreview}
+                  variant="outline"
+                  className="rounded-2xl"
+                >
                   Refresh
                 </Button>
                 <Button onClick={download} className="rounded-2xl">
@@ -408,18 +526,21 @@ export default function MemeToolPage() {
             </CardContent>
           </Card>
 
-          {/* Preview */}
           <Card className="md:col-span-3 bg-white/5 border-white/10 rounded-2xl">
             <CardHeader>
               <CardTitle>Preview</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="relative w-full">
-                <canvas ref={canvasPreviewRef} className="w-full h-auto rounded-xl border border-white/10 bg-black" />
+                <canvas
+                  ref={canvasPreviewRef}
+                  className="w-full h-auto rounded-xl border border-white/10 bg-black"
+                />
               </div>
               {!imgSrc && (
                 <div className="mt-4 text-sm text-neutral-400">
-                  Tip: start by choosing an image — clouds, coffee foam, rocks, trees… then add text and watermark.
+                  Tip: start by choosing or loading an image — clouds, coffee foam,
+                  rocks, trees…
                 </div>
               )}
             </CardContent>
