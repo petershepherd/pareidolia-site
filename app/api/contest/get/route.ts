@@ -1,17 +1,28 @@
 // app/api/contest/get/route.ts
 import { NextResponse } from "next/server";
 import { readJson, repoDataPath } from "@/lib/fs-data";
+import type { Contest, ContestFile } from "@/components/contest/types";
 
-// Minimal types
-type Contest = {
+// For backward compatibility with simplified contest format in storage
+type StoredContest = {
   id: string;
   title: string;
   start: string;
   end: string;
-  images: string[];
+  images: string[]; // URLs only
   tweetTemplate?: string;
 };
-type ContestDB = { contests: Contest[] };
+type ContestDB = { contests: StoredContest[] };
+
+// Convert stored format to full format expected by frontend
+function convertToFullContest(stored: StoredContest): Contest {
+  return {
+    ...stored,
+    activeFrom: stored.start, // Map start -> activeFrom
+    activeTo: stored.end,     // Map end -> activeTo
+    images: stored.images.map(url => ({ url })), // Convert string[] to ContestImage[]
+  };
+}
 
 // Normalize many common date formats to YYYY-MM-DD
 function normalizeYMD(input: string | undefined): string | null {
@@ -42,28 +53,28 @@ function todayYMDUTC(): string {
 }
 
 export async function GET() {
-  const path = repoDataPath("data/contests.json");
-  const db: ContestDB = await readJson<ContestDB>(path, { contests: [] });
+  const db: ContestDB = await readJson<ContestDB>("contests.json", { contests: [] });
 
-  // Normalize start/end on the fly
+  // Convert stored contests to the format expected by frontend
   const contests = (db.contests || []).map((c) => {
     const start = normalizeYMD(c.start);
     const end = normalizeYMD(c.end);
-    return { ...c, start: start ?? "", end: end ?? "" };
+    const normalizedStored: StoredContest = { 
+      ...c, 
+      start: start ?? "", 
+      end: end ?? "" 
+    };
+    return convertToFullContest(normalizedStored);
   });
 
-  const today = todayYMDUTC();
-
-  // Pick the first contest where start <= today <= end
-  const todaysContest =
-    contests.find((c) => c.start && c.end && c.start <= today && today <= c.end) || null;
+  // Return in ContestFile format expected by frontend
+  const response: ContestFile = {
+    contests,
+    submissions: [], // Empty for now
+  };
 
   return NextResponse.json(
-    {
-      today,
-      contest: todaysContest, // null if none
-      contests,               // still return all if your UI lists future ones
-    },
+    response,
     { headers: { "Cache-Control": "no-store" } }
   );
 }

@@ -59,7 +59,15 @@ export default function ContestPage() {
                   Active until: {new Date(c.activeTo).toLocaleString()}
                 </div>
                 <div className="flex gap-2">
-                  <Button asChild><a href="/meme" target="_blank" rel="noreferrer">Open Meme Generator</a></Button>
+                  <Button asChild>
+                    <a 
+                      href={`/meme?img=${encodeURIComponent(c.images[0]?.url || '')}${c.tweetTemplate ? `&caption=${encodeURIComponent(c.tweetTemplate)}` : ''}`} 
+                      target="_blank" 
+                      rel="noreferrer"
+                    >
+                      Open Meme Generator
+                    </a>
+                  </Button>
                   <Button variant="secondary" asChild><a href="https://t.me/pareidoliaportal" target="_blank" rel="noreferrer">Telegram Memeroom</a></Button>
                 </div>
               </div>

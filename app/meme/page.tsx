@@ -32,6 +32,51 @@ export default function MemeToolPage() {
   const canvasPreviewRef = useRef<HTMLCanvasElement | null>(null);
   const renderSize = useRef<{ w: number; h: number }>({ w: 1200, h: 1200 });
 
+  // Track if we've already processed URL params to avoid re-processing
+  const [urlParamsProcessed, setUrlParamsProcessed] = useState<boolean>(false);
+
+  // Load image from URL (for remote contest images)
+  const loadImageFromUrl = async (imageUrl: string) => {
+    try {
+      const response = await fetch(imageUrl);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const blob = await response.blob();
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+
+      setImgSrc(dataUrl);
+      const img = new Image();
+      img.onload = () => {
+        setImgEl(img);
+        // keep aspect ratio, max 1600 on longer side
+        const maxSide = 1600;
+        let w = img.width;
+        let h = img.height;
+        if (w > h && w > maxSide) {
+          h = Math.round(h * (maxSide / w));
+          w = maxSide;
+        } else if (h >= w && h > maxSide) {
+          w = Math.round(w * (maxSide / h));
+          h = maxSide;
+        }
+        renderSize.current = { w, h };
+        drawPreview();
+      };
+      img.crossOrigin = "anonymous";
+      img.src = dataUrl;
+    } catch (error) {
+      console.error('Failed to load image from URL:', imageUrl, error);
+      // Don't throw - just log the error and continue normally
+    }
+  };
+
   // Load selected image
   const onFile = (f?: File) => {
     if (!f) return;
@@ -261,6 +306,28 @@ export default function MemeToolPage() {
     wmOpacity,
     wmScale,
   ]);
+
+  // Handle URL query parameters for auto-loading contest images
+  useEffect(() => {
+    // Only process URL params once and only if user hasn't selected an image yet
+    if (urlParamsProcessed || imgSrc) return;
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const imgParam = urlParams.get('img');
+    const captionParam = urlParams.get('caption');
+
+    if (imgParam) {
+      // Load the remote image
+      loadImageFromUrl(imgParam);
+    }
+
+    if (captionParam && !bottomText) {
+      // Set the caption as bottomText if it's currently empty
+      setBottomText(captionParam);
+    }
+
+    setUrlParamsProcessed(true);
+  }, [imgSrc, bottomText, urlParamsProcessed]);
 
   const download = () => {
     const c = canvasPreviewRef.current;
