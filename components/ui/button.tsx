@@ -2,7 +2,7 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
-type Variant = "default" | "secondary" | "outline" | "ghost";
+type Variant = "default" | "secondary" | "outline" | "ghost" | "destructive";
 type Size = "sm" | "md" | "lg";
 
 type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
@@ -24,11 +24,17 @@ export function Button({
     secondary: "bg-white/10 text-white hover:bg-white/20",
     outline: "border border-white/20 text-white hover:bg-white/10",
     ghost: "text-neutral-300 hover:text-white hover:bg-white/5",
+    destructive: "bg-red-600 text-white hover:bg-red-700", // ➕ új variáns
   };
   const sizes: Record<Size, string> = {
     sm: "h-8 px-3 rounded-xl text-sm",
     md: "h-10 px-4 rounded-xl text-sm",
     lg: "h-12 px-5 rounded-2xl text-base",
   };
-  return <button className={cn(base, variants[variant], sizes[size], className)} {...props} />;
+  return (
+    <button
+      className={cn(base, variants[variant], sizes[size], className)}
+      {...props}
+    />
+  );
 }
