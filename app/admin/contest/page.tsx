@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -40,7 +41,7 @@ export default function AdminContestPage() {
   const [error, setError] = React.useState<string | null>(null);
   const [okMsg, setOkMsg] = React.useState<string | null>(null);
 
-  // betöltjük a meglévő contest listát
+  // lista betöltés
   React.useEffect(() => {
     let gone = false;
     (async () => {
@@ -62,11 +63,11 @@ export default function AdminContestPage() {
   const addContest = () => {
     const today = ymdUTC();
     const newItem: Contest = {
-      id: `ct-${today}-${Math.random().toString(36).slice(2, 8)}`,
+      id: "", // <- hagyjuk üresen, hogy a cím alapján generáljuk
       title: "",
       start: today,
       end: today,
-      images: [""], // adjunk első üres mezőt
+      images: [""],
       tweetTemplate: "",
     };
     setItems((prev) => [...prev, newItem]);
@@ -80,8 +81,12 @@ export default function AdminContestPage() {
     setItems((prev) => {
       const next = [...prev];
       (next[idx] as any)[key] = value;
-      if (key === "title" && !next[idx].id) {
-        next[idx].id = `ct-${slugify(value)}-${Math.random().toString(36).slice(2, 6)}`;
+      if (key === "title") {
+        const cur = (next[idx].id || "").trim();
+        if (!cur || /^ct-untitled-/.test(cur)) {
+          const base = slugify(value) || "untitled";
+          next[idx].id = `ct-${base}-${Math.random().toString(36).slice(2, 6)}`;
+        }
       }
       return next;
     });
@@ -127,12 +132,27 @@ export default function AdminContestPage() {
       return;
     }
 
-    // minimális validáció: cím, dátum, legalább 1 kép (nem üres)
+    // validáció + normalizálás
+    const normalized: Contest[] = [];
     for (const c of items) {
-      if (!c.title.trim()) return setError("Each contest needs a title.");
-      if (!c.start || !c.end) return setError("Each contest needs start and end dates.");
-      const imgs = (c.images || []).filter(Boolean);
+      const title = c.title.trim();
+      const start = c.start.trim();
+      const end = c.end.trim();
+      const id = (c.id || "").trim() || `ct-${slugify(title || "untitled")}-${Math.random().toString(36).slice(2,6)}`;
+      const imgs = (c.images || []).map(s => s.trim()).filter(Boolean);
+
+      if (!title) return setError("Each contest needs a title.");
+      if (!start || !end) return setError("Each contest needs start and end dates.");
       if (imgs.length === 0) return setError("Each contest needs at least one image URL.");
+
+      normalized.push({
+        id,
+        title,
+        start,
+        end,
+        images: imgs,
+        tweetTemplate: (c.tweetTemplate || "").trim(),
+      });
     }
 
     try {
@@ -143,13 +163,21 @@ export default function AdminContestPage() {
         body: JSON.stringify({
           wallet: publicKey.toBase58(),
           pin: pin.trim(),
-          contests: items,
+          contests: normalized,
         }),
       });
-      if (!res.ok) {
-        const j = await res.json().catch(() => ({}));
-        throw new Error(j?.error || `Save failed: ${res.status}`);
+
+      let payload: any = null;
+      try {
+        payload = await res.json();
+      } catch {
+        payload = { raw: await res.text() };
       }
+
+      if (!res.ok) {
+        throw new Error(payload?.error || payload?.message || payload?.raw || `Save failed: HTTP ${res.status}`);
+      }
+
       setOkMsg("Saved to GitHub.");
     } catch (e: any) {
       setError(e?.message || "Save failed");
@@ -174,18 +202,11 @@ export default function AdminContestPage() {
             <div className="grid sm:grid-cols-2 gap-3">
               <div>
                 <label className="text-xs text-neutral-400">Connected wallet</label>
-                <Input
-                  value={publicKey ? publicKey.toBase58() : "— not connected —"}
-                  readOnly
-                />
+                <Input value={publicKey ? publicKey.toBase58() : "— not connected —"} readOnly />
               </div>
               <div>
                 <label className="text-xs text-neutral-400">Admin PIN</label>
-                <Input
-                  value={pin}
-                  onChange={(e) => setPin(e.target.value)}
-                  placeholder="Enter admin PIN"
-                />
+                <Input value={pin} onChange={(e) => setPin(e.target.value)} placeholder="Enter admin PIN" />
               </div>
             </div>
             <div className="flex gap-2 justify-end">
@@ -211,7 +232,10 @@ export default function AdminContestPage() {
               <Card key={c.id || idx} className="bg-white/5 border-white/10 rounded-2xl">
                 <CardHeader>
                   <CardTitle className="flex items-center justify-between">
-                    <span>{c.title || "(untitled)"} <span className="text-xs text-neutral-400 ml-2">{c.id}</span></span>
+                    <span>
+                      {c.title || "(untitled)"}{" "}
+                      <span className="text-xs text-neutral-400 ml-2">{c.id || "ct-untitled-…"}</span>
+                    </span>
                     <Button variant="destructive" onClick={() => removeContest(idx)}>Delete Contest</Button>
                   </CardTitle>
                 </CardHeader>
@@ -240,7 +264,7 @@ export default function AdminContestPage() {
                     <Input
                       value={c.tweetTemplate || ""}
                       onChange={(e) => updateField(idx, "tweetTemplate", e.target.value)}
-                      placeholder="E.g. 'New PAREIDOLIA meme contest — use the image below and tag @pareidolia_SOL'"
+                      placeholder="E.g. “New PAREIDOLIA meme contest — use the image below and tag @pareidolia_SOL”"
                     />
                   </div>
 
@@ -261,6 +285,12 @@ export default function AdminContestPage() {
                             placeholder="https://… (image url)"
                           />
                           <Button variant="destructive" onClick={() => removeImage(idx, iIdx)}>Remove</Button>
+                          {url ? (
+                            <div className="relative w-16 h-16 shrink-0 rounded-lg overflow-hidden border border-white/10">
+                              {/* csak előnézet, ha ugyanarról a domainről, a Next/Image külső domainhez engedély szükséges */}
+                              <Image src={url} alt="" fill sizes="64px" style={{ objectFit: "cover" }} unoptimized />
+                            </div>
+                          ) : null}
                         </div>
                       ))}
                     </div>
