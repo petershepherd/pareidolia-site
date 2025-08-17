@@ -10,6 +10,8 @@ type Contest = {
   title: string;
   start: string; // YYYY-MM-DD
   end: string;   // YYYY-MM-DD
+  activeFrom: string; // ISO format - same as start
+  activeTo: string;   // ISO format - same as end
   images: string[];
   tweetTemplate?: string;
 };
@@ -71,8 +73,7 @@ export async function POST(req: NextRequest) {
     }
 
     // read existing (or fallback)
-    const path = repoDataPath("data/contests.json");
-    const db: ContestDB = await readJson<ContestDB>(path, { contests: [] });
+    const db: ContestDB = await readJson<ContestDB>("contests.json", { contests: [] });
 
     // very light validation + trimming
     const cleaned: Contest[] = contests.map((c) => ({
@@ -80,6 +81,8 @@ export async function POST(req: NextRequest) {
       title: String(c.title || "").trim(),
       start: String(c.start || "").trim(),
       end: String(c.end || "").trim(),
+      activeFrom: String(c.start || "").trim(), // Set activeFrom = start for compatibility
+      activeTo: String(c.end || "").trim(),     // Set activeTo = end for compatibility
       images: (Array.isArray(c.images) ? c.images : [])
         .map((u) => String(u || "").trim())
         .filter(Boolean),

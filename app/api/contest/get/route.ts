@@ -8,6 +8,8 @@ type Contest = {
   title: string;
   start: string;
   end: string;
+  activeFrom?: string; // May not exist in old data
+  activeTo?: string;   // May not exist in old data
   images: string[];
   tweetTemplate?: string;
 };
@@ -42,14 +44,22 @@ function todayYMDUTC(): string {
 }
 
 export async function GET() {
-  const path = repoDataPath("data/contests.json");
-  const db: ContestDB = await readJson<ContestDB>(path, { contests: [] });
+  const db: ContestDB = await readJson<ContestDB>("contests.json", { contests: [] });
 
-  // Normalize start/end on the fly
+  // Normalize start/end on the fly and ensure activeFrom/activeTo exist
   const contests = (db.contests || []).map((c) => {
     const start = normalizeYMD(c.start);
     const end = normalizeYMD(c.end);
-    return { ...c, start: start ?? "", end: end ?? "" };
+    return { 
+      ...c, 
+      start: start ?? "", 
+      end: end ?? "",
+      // Ensure activeFrom/activeTo exist for backward compatibility
+      activeFrom: c.activeFrom || (start ?? ""),
+      activeTo: c.activeTo || (end ?? ""),
+      // Convert string[] images to ContestImage[] format for frontend compatibility
+      images: Array.isArray(c.images) ? c.images.map(url => typeof url === 'string' ? { url, alt: '' } : url) : []
+    };
   });
 
   const today = todayYMDUTC();
