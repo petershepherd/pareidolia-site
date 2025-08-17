@@ -1,4 +1,14 @@
 {
-  "contests": [],
-  "submissions": []
+  "contests": [
+    {
+      "id": "ct-a-tv9u",
+      "title": "first contest",
+      "start": "2025-08-17",
+      "end": "2025-08-17",
+      "images": [
+        "https://preview.redd.it/can-you-see-what-i-see-v0-inlgjj7skjjf1.jpeg?width=640&crop=smart&auto=webp&s=0eeb55de237efb4e977ef108100e3275fe04d9e0"
+      ],
+      "tweetTemplate": "@pareidolia_SOL"
+    }
+  ]
 }
