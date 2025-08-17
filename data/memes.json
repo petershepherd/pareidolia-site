@@ -1,12 +1,17 @@
 {
   "submissions": [
     {
-      "id": "tw-1955766797031850098",
-      "tweetUrl": "https://x.com/pareidolia_SOL/status/1955766797031850098",
-      "wallet": "4VsXDKquJQpfUxNcE46T2dzvwWQWGasrS7MCucBErxon",
-      "submittedAt": "2025-08-16T01:00:00.000Z",
+      "id": "tw-1956976342169182464",
+      "tweetUrl": "https://x.com/pareidolia_SOL/status/1956976342169182464",
+      "wallet": "",
+      "submittedAt": "2025-08-17T07:43:35.566Z",
       "approved": false,
-      "metrics": { "like": 0, "retweet": 0, "reply": 0, "quote": 0 }
+      "metrics": {
+        "like": 0,
+        "retweet": 0,
+        "reply": 0,
+        "quote": 0
+      }
     }
   ]
 }
