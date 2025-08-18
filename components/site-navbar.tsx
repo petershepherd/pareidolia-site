@@ -13,6 +13,7 @@ import {
   Image as ImageIcon,
   Trophy,
   Upload,
+  ChevronDown,
 } from "lucide-react";
 
 // Wallet connect button (styles are provided by WalletProviders import elsewhere)
@@ -37,7 +38,10 @@ const DEFAULT_LINKS: ExternalLinks = {
 
 const INTERNAL_NAV = [
   { href: "/", label: "Home" },
-  { href: "/meme", label: "Meme Generator", icon: <ImageIcon className="h-4 w-4" /> },
+];
+
+const MEME_NAV_ITEMS = [
+  { href: "/meme", label: "Generator", icon: <ImageIcon className="h-4 w-4" /> },
   { href: "/contest", label: "Contest", icon: <Trophy className="h-4 w-4" /> },
   { href: "/submit", label: "Submit", icon: <Upload className="h-4 w-4" /> },
   { href: "/leaderboard", label: "Leaderboard", icon: <Trophy className="h-4 w-4" /> },
@@ -45,13 +49,47 @@ const INTERNAL_NAV = [
 
 export function Navbar({ links = DEFAULT_LINKS }: NavbarProps) {
   const [open, setOpen] = React.useState(false);
+  const [memeDropdownOpen, setMemeDropdownOpen] = React.useState(false);
+  const [mobileMemeSectionOpen, setMobileMemeSectionOpen] = React.useState(false);
+  const dropdownRef = React.useRef<HTMLDivElement>(null);
   const router = useRouter();
 
   // close on hash change (best-effort)
   React.useEffect(() => {
-    const onHash = () => setOpen(false);
+    const onHash = () => {
+      setOpen(false);
+      setMemeDropdownOpen(false);
+      setMobileMemeSectionOpen(false);
+    };
     window.addEventListener("hashchange", onHash);
     return () => window.removeEventListener("hashchange", onHash);
+  }, []);
+
+  // Handle click outside dropdown
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setMemeDropdownOpen(false);
+      }
+    };
+    
+    if (memeDropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
+    }
+  }, [memeDropdownOpen]);
+
+  // Handle ESC key
+  React.useEffect(() => {
+    const handleEscapeKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setMemeDropdownOpen(false);
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener("keydown", handleEscapeKey);
+    return () => document.removeEventListener("keydown", handleEscapeKey);
   }, []);
 
   return (
@@ -73,10 +111,40 @@ export function Navbar({ links = DEFAULT_LINKS }: NavbarProps) {
               href={item.href}
               className="inline-flex items-center gap-1 rounded-full px-3 py-2 text-sm text-neutral-300 hover:text-white hover:bg-white/5 transition"
             >
-              {item.icon ?? null}
               {item.label}
             </Link>
           ))}
+          
+          {/* Meme dropdown */}
+          <div className="relative" ref={dropdownRef}>
+            <button
+              className="inline-flex items-center gap-1 rounded-full px-3 py-2 text-sm text-neutral-300 hover:text-white hover:bg-white/5 transition"
+              onClick={() => setMemeDropdownOpen((prev) => !prev)}
+              aria-expanded={memeDropdownOpen}
+              aria-haspopup="true"
+            >
+              Meme
+              <ChevronDown className={`h-3 w-3 transition-transform ${memeDropdownOpen ? 'rotate-180' : ''}`} />
+            </button>
+            
+            {memeDropdownOpen && (
+              <div className="absolute top-full left-0 mt-1 w-48 bg-neutral-900 border border-white/10 rounded-lg shadow-lg z-50">
+                <div className="py-1">
+                  {MEME_NAV_ITEMS.map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className="flex items-center gap-2 px-4 py-2 text-sm text-neutral-300 hover:text-white hover:bg-white/5 transition"
+                      onClick={() => setMemeDropdownOpen(false)}
+                    >
+                      {item.icon}
+                      {item.label}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
           {/* NINCS admin gomb – az automatikus redirect intézi */}
         </nav>
 
@@ -125,10 +193,40 @@ export function Navbar({ links = DEFAULT_LINKS }: NavbarProps) {
                   className="flex items-center gap-2 rounded-xl px-3 py-2 text-neutral-200 hover:bg-white/5"
                   onClick={() => setOpen(false)}
                 >
-                  {item.icon ?? null}
                   <span>{item.label}</span>
                 </Link>
               ))}
+              
+              {/* Meme collapsible section */}
+              <div>
+                <button
+                  className="w-full flex items-center gap-2 rounded-xl px-3 py-2 text-neutral-200 hover:bg-white/5"
+                  onClick={() => setMobileMemeSectionOpen((prev) => !prev)}
+                  aria-expanded={mobileMemeSectionOpen}
+                >
+                  <span>Meme</span>
+                  <ChevronDown className={`h-4 w-4 transition-transform ml-auto ${mobileMemeSectionOpen ? 'rotate-180' : ''}`} />
+                </button>
+                
+                {mobileMemeSectionOpen && (
+                  <div className="ml-4 mt-1 space-y-1">
+                    {MEME_NAV_ITEMS.map((item) => (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        className="flex items-center gap-2 rounded-xl px-3 py-2 text-neutral-300 hover:bg-white/5"
+                        onClick={() => {
+                          setOpen(false);
+                          setMobileMemeSectionOpen(false);
+                        }}
+                      >
+                        {item.icon}
+                        <span>{item.label}</span>
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
               {/* NINCS admin gomb mobilon sem */}
             </div>
 

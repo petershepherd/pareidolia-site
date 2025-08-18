@@ -97,16 +97,60 @@ export default function MemeToolPage() {
   useEffect(() => {
     if (imgSrc) return;
     if (typeof window === "undefined") return;
-    const sp = new URLSearchParams(window.location.search);
-    const img = sp.get("img");
-    const caption = sp.get("caption");
-    if (img) {
-      setRemoteUrl(img);
-      loadRemoteImage(img);
-    }
-    if (caption && !bottomText && !topText) {
-      setBottomText(caption);
-    }
+    
+    const processCoinParam = async () => {
+      const sp = new URLSearchParams(window.location.search);
+      const img = sp.get("img");
+      const caption = sp.get("caption");
+      const coin = sp.get("coin");
+
+      // Handle coin parameter first
+      if (coin) {
+        try {
+          const response = await fetch(`/api/coins?search=${encodeURIComponent(coin)}`);
+          if (response.ok) {
+            const data = await response.json();
+            if (data.coins && data.coins.length > 0) {
+              const coinData = data.coins[0]; // Use first match
+              if (coinData.imageUrls && coinData.imageUrls.length > 0) {
+                // Load the first image
+                const imageUrl = coinData.imageUrls[0];
+                setRemoteUrl(imageUrl);
+                loadRemoteImage(imageUrl);
+                
+                // Prefill captions
+                if (!topText) {
+                  setTopText(coinData.symbol.toUpperCase());
+                }
+                if (!bottomText && coinData.narrative) {
+                  // Trim narrative to 140 chars
+                  const trimmedNarrative = coinData.narrative.length > 140 
+                    ? coinData.narrative.substring(0, 137) + "..."
+                    : coinData.narrative;
+                  setBottomText(trimmedNarrative);
+                }
+              }
+            }
+          }
+        } catch (error) {
+          console.error("Failed to fetch coin data:", error);
+          // Continue with manual flow on error
+        }
+      }
+      
+      // Handle other params if coin param didn't load an image
+      if (!coin) {
+        if (img) {
+          setRemoteUrl(img);
+          loadRemoteImage(img);
+        }
+        if (caption && !bottomText && !topText) {
+          setBottomText(caption);
+        }
+      }
+    };
+
+    processCoinParam();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
