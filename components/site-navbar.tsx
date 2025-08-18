@@ -38,9 +38,6 @@ const DEFAULT_LINKS: ExternalLinks = {
 const INTERNAL_NAV = [
   { href: "/", label: "Home" },
   { href: "/meme", label: "Meme Generator", icon: <ImageIcon className="h-4 w-4" /> },
-  { href: "/contest", label: "Contest", icon: <Trophy className="h-4 w-4" /> },
-  { href: "/submit", label: "Submit", icon: <Upload className="h-4 w-4" /> },
-  { href: "/leaderboard", label: "Leaderboard", icon: <Trophy className="h-4 w-4" /> },
 ];
 
 export function Navbar({ links = DEFAULT_LINKS }: NavbarProps) {

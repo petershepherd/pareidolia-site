@@ -4,8 +4,9 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ExternalLink, Trophy, ImageIcon, Flame, TrendingUp } from "lucide-react";
+import { ExternalLink, Trophy, ImageIcon, Flame, TrendingUp, Upload, BarChart3 } from "lucide-react";
 import { CoinList } from "@/components/coins/CoinList";
+import { SiteFooter } from "@/components/site-footer";
 import Link from "next/link";
 
 /* ------------------------------- LINKS ------------------------------- */
@@ -33,10 +34,10 @@ export default function Page() {
         <CoinHubHero />
         <BuybackBurnWidget />
         <CoinListSection onMemeClick={handleMemeClick} />
-        <LegacyLinks />
+        <CommunityHighlights />
       </main>
 
-      <Footer />
+      <SiteFooter />
     </div>
   );
 }
@@ -165,82 +166,99 @@ function CoinListSection({ onMemeClick }: { onMemeClick: (symbol: string) => voi
   );
 }
 
-/* ----------------------------- LEGACY LINKS ----------------------------- */
+/* ------------------------- COMMUNITY HIGHLIGHTS ------------------------- */
 
-function LegacyLinks() {
+function CommunityHighlights() {
   return (
-    <section className="relative py-12">
+    <section className="relative py-16">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.8 }}
         className="text-center"
       >
-        <div className="mb-6">
-          <h3 className="text-xl font-semibold text-neutral-400 mb-2">More Ways to Participate</h3>
-          <p className="text-neutral-500 text-sm">
-            The original contest and community features are still available
+        <div className="mb-8">
+          <h2 className="text-3xl sm:text-4xl font-bold mb-4">Community Highlights</h2>
+          <p className="text-lg text-neutral-300 max-w-2xl mx-auto">
+            Join the most creative corner of Solana. Compete, create, and climb the leaderboards.
           </p>
         </div>
         
-        <div className="flex flex-wrap items-center justify-center gap-3">
-          <Button asChild variant="ghost" className="rounded-2xl text-neutral-400 hover:text-white">
-            <Link href="/contest">
-              <Trophy className="mr-2 h-4 w-4" />
-              Meme Contest
-            </Link>
-          </Button>
-          
-          <Button asChild variant="ghost" className="rounded-2xl text-neutral-400 hover:text-white">
-            <Link href="/submit">
-              Submit Entry
-            </Link>
-          </Button>
-          
-          <Button asChild variant="ghost" className="rounded-2xl text-neutral-400 hover:text-white">
-            <Link href="/leaderboard">
-              Leaderboard
-            </Link>
-          </Button>
+        <div className="grid gap-6 md:grid-cols-3 max-w-4xl mx-auto">
+          {/* Contest Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.9 }}
+          >
+            <Card className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 border-purple-500/20 hover:border-purple-400/40 transition-all group cursor-pointer">
+              <CardContent className="p-6 text-center">
+                <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-purple-500/20 group-hover:bg-purple-500/30 transition-colors">
+                  <Trophy className="h-6 w-6 text-purple-400" />
+                </div>
+                <h3 className="text-xl font-semibold mb-2">Meme Contest</h3>
+                <p className="text-sm text-neutral-400 mb-4">
+                  Compete with the community in daily meme challenges. Show off your creativity and win rewards.
+                </p>
+                <Button asChild variant="outline" className="rounded-2xl border-purple-400/30 text-purple-300 hover:bg-purple-500/10">
+                  <Link href="/contest">
+                    Join Contest
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* Submit Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 1.0 }}
+          >
+            <Card className="bg-gradient-to-br from-cyan-500/10 to-blue-500/10 border-cyan-500/20 hover:border-cyan-400/40 transition-all group cursor-pointer">
+              <CardContent className="p-6 text-center">
+                <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-cyan-500/20 group-hover:bg-cyan-500/30 transition-colors">
+                  <Upload className="h-6 w-6 text-cyan-400" />
+                </div>
+                <h3 className="text-xl font-semibold mb-2">Submit a Meme</h3>
+                <p className="text-sm text-neutral-400 mb-4">
+                  Share your best memes with the community. Get featured and earn recognition from fellow creators.
+                </p>
+                <Button asChild variant="outline" className="rounded-2xl border-cyan-400/30 text-cyan-300 hover:bg-cyan-500/10">
+                  <Link href="/submit">
+                    Submit Now
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* Leaderboard Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 1.1 }}
+          >
+            <Card className="bg-gradient-to-br from-amber-500/10 to-orange-500/10 border-amber-500/20 hover:border-amber-400/40 transition-all group cursor-pointer">
+              <CardContent className="p-6 text-center">
+                <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-amber-500/20 group-hover:bg-amber-500/30 transition-colors">
+                  <BarChart3 className="h-6 w-6 text-amber-400" />
+                </div>
+                <h3 className="text-xl font-semibold mb-2">Leaderboard</h3>
+                <p className="text-sm text-neutral-400 mb-4">
+                  See who's leading the meme game. Track rankings and discover the top creators in our community.
+                </p>
+                <Button asChild variant="outline" className="rounded-2xl border-amber-400/30 text-amber-300 hover:bg-amber-500/10">
+                  <Link href="/leaderboard">
+                    View Rankings
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
+          </motion.div>
         </div>
       </motion.div>
     </section>
-  );
-}
-
-/* -------------------------------- FOOTER -------------------------------- */
-
-function Footer() {
-  return (
-    <footer className="relative mt-16 border-t border-white/5 bg-neutral-950/80">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="text-sm text-neutral-400">
-            © {new Date().getFullYear()} Pareidolia Coin Hub
-          </div>
-          
-          <div className="flex items-center gap-3">
-            <Button asChild variant="outline" className="rounded-2xl border-white/20 text-white hover:bg-white/10">
-              <a href={LINKS.dex} target="_blank" rel="noreferrer">
-                Trade <ExternalLink className="ml-2 h-4 w-4" />
-              </a>
-            </Button>
-            
-            <Button asChild variant="ghost" className="rounded-2xl text-neutral-300 hover:text-white">
-              <a href={LINKS.xCommunity} target="_blank" rel="noreferrer">
-                Community <ExternalLink className="ml-2 h-4 w-4" />
-              </a>
-            </Button>
-            
-            <Button asChild variant="ghost" className="rounded-2xl text-neutral-300 hover:text-white">
-              <a href={LINKS.telegram} target="_blank" rel="noreferrer">
-                Telegram <ExternalLink className="ml-2 h-4 w-4" />
-              </a>
-            </Button>
-          </div>
-        </div>
-      </div>
-    </footer>
   );
 }
 
