@@ -45,19 +45,21 @@ export default function Page() {
 
 function CoinHubHero() {
   return (
-    <section className="relative py-16 sm:py-24">
+    <section className="relative py-16 sm:py-20">
       <div className="text-center">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
         >
-          <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight mb-4">
-            Pareidolia Coin Hub
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tight mb-4">
+            <span className="bg-gradient-to-r from-cyan-400 via-fuchsia-500 to-amber-400 bg-clip-text text-transparent">
+              Illusion Of Life
+            </span>
+            , powered by Pareidolia
           </h1>
           <p className="mx-auto mt-4 max-w-3xl text-xl text-neutral-300">
-            Your gateway to the Solana meme coin ecosystem. Discover emerging tokens, 
-            track burn events, and turn market patterns into meme magic.
+            See what you want to see. Turn market patterns into meme magic with the power of perception and pattern recognition.
           </p>
         </motion.div>
         
