@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, Trophy, Upload } from "lucide-react";
+import { ExternalLink, Trophy, Upload, FileText } from "lucide-react";
 
 const LINKS = {
   telegram: "https://t.me/pareidoliaportal",
@@ -56,6 +56,13 @@ export function SiteFooter() {
               >
                 <Trophy className="inline h-4 w-4 mr-2" />
                 Leaderboard
+              </Link>
+              <Link 
+                href="/manifesto" 
+                className="block text-sm text-neutral-400 hover:text-white transition-colors"
+              >
+                <FileText className="inline h-4 w-4 mr-2" />
+                Manifesto
               </Link>
             </nav>
           </div>

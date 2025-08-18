@@ -60,7 +60,10 @@ function CoinHubHero() {
             , powered by Pareidolia
           </h1>
           <p className="mx-auto mt-4 max-w-3xl text-xl text-neutral-300">
-            See what you want to see. Turn market patterns into meme magic with the power of perception and pattern recognition.
+            See what you want to see. Turn market patterns into meme magic with the power of perception and pattern recognition.{" "}
+            <Link href="/manifesto" className="text-cyan-400 hover:text-cyan-300 underline underline-offset-4">
+              (Read manifesto)
+            </Link>
           </p>
         </motion.div>
         
