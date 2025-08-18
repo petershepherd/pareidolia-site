@@ -13,6 +13,7 @@ import {
   Image as ImageIcon,
   Trophy,
   Upload,
+  FileText,
 } from "lucide-react";
 
 // Wallet connect button (styles are provided by WalletProviders import elsewhere)
@@ -41,6 +42,7 @@ const INTERNAL_NAV = [
   { href: "/contest", label: "Contest", icon: <Trophy className="h-4 w-4" /> },
   { href: "/submit", label: "Submit", icon: <Upload className="h-4 w-4" /> },
   { href: "/leaderboard", label: "Leaderboard", icon: <Trophy className="h-4 w-4" /> },
+  { href: "/manifesto", label: "Illusion Of Life Manifesto", icon: <FileText className="h-4 w-4" /> },
 ];
 
 export function Navbar({ links = DEFAULT_LINKS }: NavbarProps) {
