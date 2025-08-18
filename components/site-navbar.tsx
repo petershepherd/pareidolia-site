@@ -11,8 +11,6 @@ import {
   Twitter,
   Send,
   Image as ImageIcon,
-  Trophy,
-  Upload,
 } from "lucide-react";
 
 // Wallet connect button (styles are provided by WalletProviders import elsewhere)
