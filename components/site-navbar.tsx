@@ -31,7 +31,7 @@ type NavbarProps = {
 
 const DEFAULT_LINKS: ExternalLinks = {
   dex: "https://letsbonk.fun/token/BXrwn2UWEeUAKghP8hatpW4i5AMchdscTzchMYE4bonk",
-  xCommunity: "https://x.com/i/communities/1954506369618391171",
+  xCommunity: "https://x.com/pareidolia_SOL",
   telegram: "https://t.me/pareidoliaportal",
 };
 
