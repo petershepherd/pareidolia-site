@@ -1,15 +1,14 @@
 "use client";
 
-import { HolderGate } from "@/components/HolderGate";
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import { motion, useMotionValue, useTransform } from "framer-motion";
+import React, { useState } from "react";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Copy, Check, ExternalLink, Twitter, Send, Link as LinkIcon } from "lucide-react";
+import { ExternalLink, Trophy, ImageIcon, Flame, TrendingUp } from "lucide-react";
+import { CoinList } from "@/components/coins/CoinList";
+import Link from "next/link";
 
-/* ------------------------------- LINKS & TOKEN ------------------------------- */
+/* ------------------------------- LINKS ------------------------------- */
 
 const LINKS = {
   telegram: "https://t.me/pareidoliaportal",
@@ -18,429 +17,191 @@ const LINKS = {
   explorer: "https://solscan.io/token/BXrwn2UWEeUAKghP8hatpW4i5AMchdscTzchMYE4bonk",
 };
 
-const TOKEN = {
-  chain: "Solana",
-  ticker: "PAREIDOLIA",
-  contract: "BXrwn2UWEeUAKghP8hatpW4i5AMchdscTzchMYE4bonk",
-  supply: "1 Trillion",
-};
-
-const __SHOW_TESTS__ = false;
-
 /* ------------------------------- PAGE ROOT ------------------------------- */
 
 export default function Page() {
-  const [hintOpen, setHintOpen] = useState(false);
+  const handleMemeClick = (coinSymbol: string) => {
+    // Deep link to meme generator with coin parameter
+    window.open(`/meme?coin=${coinSymbol}`, '_blank');
+  };
 
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-100 selection:bg-cyan-500/40 selection:text-white">
       <AnimatedBackground />
 
-      {/* Secret typing unlock (contract typing reward) */}
-      <SecretTypeUnlock
-        secret={TOKEN.contract}
-        password="PAREIDOLIA-FOUND-YOU" // <- write your final password here
-      />
-
-      {/* Hint modal (X share -> poetic hint) */}
-      <HintModal
-        open={hintOpen}
-        onClose={() => setHintOpen(false)}
-        tweetText={`Seeing faces in things? Same. PAREIDOLIA turns that universal glitch into a meme movement. Join us at https://www.illusionof.life #Pareidolia #FacesInThings`}
-      />
-
-      <main className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-        <Hero onOpenHint={() => setHintOpen(true)} />
-        <WhatIs />
-        <TokenOverview />
-        <WhyNow />
-        <Roadmap />
-        <JoinUs />
-        {__SHOW_TESTS__ && <DevTests />}
+      <main className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <CoinHubHero />
+        <BuybackBurnWidget />
+        <CoinListSection onMemeClick={handleMemeClick} />
+        <LegacyLinks />
       </main>
 
       <Footer />
-      <EasterEggFace />
     </div>
   );
 }
 
 /* --------------------------------- HERO --------------------------------- */
 
-function Hero({ onOpenHint }: { onOpenHint: () => void }) {
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
-  const rotate = useTransform(x, [-100, 100], [-5, 5]);
-  useEffect(() => {
-    const onMove = (e: MouseEvent) => {
-      const cx = window.innerWidth / 2;
-      const cy = window.innerHeight / 2;
-      x.set((e.clientX - cx) / 20);
-      y.set((e.clientY - cy) / 20);
-    };
-    window.addEventListener("mousemove", onMove);
-    return () => window.removeEventListener("mousemove", onMove);
-  }, [x, y]);
-
+function CoinHubHero() {
   return (
-    <section id="top" className="relative py-20 sm:py-28">
-      <motion.div style={{ rotate }}>
-        <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-center">
-          See What You Want to See
-        </h1>
-      </motion.div>
-      <p className="mx-auto mt-4 max-w-2xl text-center text-neutral-300">
-        The meme coin that turns your brain’s pattern-recognition glitch into a movement.
-      </p>
-      <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-        <Button asChild size="lg" className="rounded-2xl">
-          <a href={LINKS.dex} target="_blank" rel="noreferrer">
-            Buy Token <ExternalLink className="ml-2 h-4 w-4" />
-          </a>
-        </Button>
-        <Button asChild variant="secondary" size="lg" className="rounded-2xl">
-          <a href={LINKS.telegram} target="_blank" rel="noreferrer">
-            Join Telegram <Send className="ml-2 h-4 w-4" />
-          </a>
-        </Button>
-        <Button asChild variant="ghost" size="lg" className="rounded-2xl text-neutral-300 hover:text-white">
-          <a href={LINKS.xCommunity} target="_blank" rel="noreferrer">
-            Join X Community <Twitter className="ml-2 h-4 w-4" />
-          </a>
-        </Button>
-      </div>
-      <div className="mx-auto mt-10 max-w-xl">
-        <CopyableAddress address={TOKEN.contract} />
-        <div className="mt-3 flex items-center justify-end">
-          <button
-            onClick={onOpenHint}
-            className="text-xs text-neutral-400 hover:text-white underline underline-offset-4 flex items-center gap-1"
-            aria-label="Get a hint for the Easter egg"
-          >
-            🐇🥚 hint
-          </button>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ---------------------------- COPY HELPERS ---------------------------- */
-
-async function tryClipboardWrite(text: string) {
-  if (typeof navigator !== "undefined" && (navigator as any).clipboard && window.isSecureContext) {
-    await (navigator as any).clipboard.writeText(text);
-    return true;
-  }
-  return false;
-}
-
-function execCommandFallback(text: string) {
-  try {
-    const ta = document.createElement("textarea");
-    ta.value = text;
-    ta.setAttribute("readonly", "");
-    ta.style.position = "fixed";
-    ta.style.opacity = "0";
-    ta.style.pointerEvents = "none";
-    document.body.appendChild(ta);
-    ta.select();
-    const ok = document.execCommand("copy");
-    document.body.removeChild(ta);
-    if (!ok) throw new Error("execCommand copy returned false");
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-/* --------------------------- REUSABLE CARDS --------------------------- */
-
-function CopyableAddress({ address }: { address: string }) {
-  const [copied, setCopied] = useState(false);
-  const [manual, setManual] = useState(false);
-  const inputRef = useRef<HTMLInputElement | null>(null);
-  useEffect(() => {
-    if (manual && inputRef.current) {
-      inputRef.current.focus();
-      inputRef.current.select();
-    }
-  }, [manual]);
-
-  const handleCopy = async () => {
-    setManual(false);
-    try {
-      const okModern = await tryClipboardWrite(address);
-      if (okModern) {
-        setCopied(true);
-        setTimeout(() => setCopied(false), 1400);
-        return;
-      }
-    } catch {}
-    const okLegacy = execCommandFallback(address);
-    if (okLegacy) {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1400);
-      return;
-    }
-    setManual(true);
-  };
-
-  return (
-    <Card className="bg-white/5 border-white/10 rounded-2xl" data-e2e="copyable-address">
-      <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="space-y-1">
-          <div className="text-xs uppercase tracking-wider text-neutral-400">Contract Address</div>
-          <code className="block text-sm sm:text-base text-white/90 break-all">{address}</code>
-          {manual && (
-            <div className="mt-2 flex items-center gap-2">
-              <Input
-                ref={inputRef}
-                readOnly
-                value={address}
-                className="bg-black/30 border-white/20 text-white"
-                aria-label="Contract address manual copy"
-              />
-              <Button
-                type="button"
-                variant="outline"
-                className="rounded-2xl border-white/20 text-white hover:bg-white/10"
-                onClick={() => {
-                  if (inputRef.current) {
-                    inputRef.current.focus();
-                    inputRef.current.select();
-                  }
-                }}
-              >
-                Select
-              </Button>
-              <span className="text-xs text-neutral-400">Press Ctrl/Cmd + C</span>
-            </div>
-          )}
-        </div>
-        <div className="flex items-center gap-2">
-          <Badge className="rounded-full">{TOKEN.chain}</Badge>
-          <Button
-            onClick={handleCopy}
-            variant="outline"
-            className="rounded-2xl border-white/20 text-white hover:bg-white/10"
-            aria-live="polite"
-            data-e2e="copy-button"
-          >
-            {copied ? (
-              <>
-                <Check className="mr-2 h-4 w-4" /> Copied
-              </>
-            ) : (
-              <>
-                <Copy className="mr-2 h-4 w-4" /> Copy
-              </>
-            )}
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-/* ----------------------------- SECTIONS ----------------------------- */
-
-function WhatIs() {
-  return (
-    <section id="what" className="relative py-20">
-      <div className="grid items-center gap-8 md:grid-cols-2">
-        <div className="space-y-4">
-          <h2 className="text-2xl sm:text-3xl font-bold">What is Pareidolia?</h2>
-          <p className="text-neutral-300">
-            Pareidolia is your brain’s habit of finding meaning where there is none — faces in clouds,
-            animals in coffee foam, words in static noise. We turned this universal, weirdly emotional
-            experience into a meme coin.
-          </p>
-          <ul className="list-disc pl-5 text-neutral-300 space-y-2">
-            <li>See faces in objects</li>
-            <li>Hear words in random noise</li>
-            <li>Spot patterns in market chaos</li>
-          </ul>
-        </div>
-        <PatternMosaic />
-      </div>
-    </section>
-  );
-}
-
-function PatternMosaic() {
-  const tiles = new Array(12).fill(0);
-  return (
-    <div className="grid grid-cols-3 gap-3">
-      {tiles.map((_, i) => (
+    <section className="relative py-16 sm:py-24">
+      <div className="text-center">
         <motion.div
-          key={i}
-          className="aspect-square rounded-2xl bg-gradient-to-br from-cyan-500/20 via-fuchsia-500/20 to-amber-400/20 border border-white/10"
-          animate={{ borderRadius: ["1rem", "30%", "50%", "1rem"], scale: [1, 1.02, 0.98, 1] }}
-          transition={{ duration: 4 + (i % 3), repeat: Infinity, ease: "easeInOut" }}
-        />
-      ))}
-    </div>
-  );
-}
-
-function TokenOverview() {
-  return (
-    <section id="token" className="relative py-20">
-      <div className="mb-8 text-center">
-        <h2 className="text-2xl sm:text-3xl font-bold">Token Overview</h2>
-        <p className="mt-2 text-neutral-300">Quick facts and links.</p>
-      </div>
-      <div className="grid gap-6 md:grid-cols-3">
-        <TokenStat label="Chain" value={TOKEN.chain} />
-        <TokenStat label="Ticker" value={TOKEN.ticker} />
-        <TokenStat label="Supply" value={TOKEN.supply} />
-      </div>
-      <div className="mt-6">
-        <CopyableAddress address={TOKEN.contract} />
-      </div>
-      <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-        <Button asChild className="rounded-2xl">
-          <a href={LINKS.dex} target="_blank" rel="noreferrer">
-            Buy on DEX <ExternalLink className="ml-2 h-4 w-4" />
-          </a>
-        </Button>
-        <Button asChild variant="outline" className="rounded-2xl border-white/20 text-white hover:bg-white/10">
-          <a href={LINKS.explorer} target="_blank" rel="noreferrer">
-            View on Explorer <ExternalLink className="ml-2 h-4 w-4" />
-          </a>
-        </Button>
-        <Button asChild variant="ghost" className="rounded-2xl text-neutral-300 hover:text-white">
-          <a href={LINKS.xCommunity} target="_blank" rel="noreferrer">
-            X Community <Twitter className="ml-2 h-4 w-4" />
-          </a>
-        </Button>
-        <Button asChild variant="secondary" className="rounded-2xl">
-          <a href={LINKS.telegram} target="_blank" rel="noreferrer">
-            Telegram <Send className="ml-2 h-4 w-4" />
-          </a>
-        </Button>
-      </div>
-    </section>
-  );
-}
-
-function TokenStat({ label, value }: { label: string; value: string }) {
-  return (
-    <Card className="rounded-2xl bg-white/5 border-white/10">
-      <CardHeader>
-        <CardTitle className="text-sm font-medium text-neutral-400">{label}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="text-xl font-semibold">{value}</div>
-      </CardContent>
-    </Card>
-  );
-}
-
-function WhyNow() {
-  return (
-    <section id="why" className="relative py-20">
-      <div className="grid items-start gap-8 md:grid-cols-2">
-        <div className="space-y-4">
-          <h2 className="text-2xl sm:text-3xl font-bold">Why now?</h2>
-          <p className="text-neutral-300">
-            Pareidolia isn’t just a brain quirk — it’s a universal glitch turned cultural engine. In a world of
-            noise, we give people something to <em>see</em>. Part art experiment, part social phenomenon, part crypto
-            wildfire — PAREIDOLIA is built to spread faster than the patterns you imagine.
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+        >
+          <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight mb-4">
+            Pareidolia Coin Hub
+          </h1>
+          <p className="mx-auto mt-4 max-w-3xl text-xl text-neutral-300">
+            Your gateway to the Solana meme coin ecosystem. Discover emerging tokens, 
+            track burn events, and turn market patterns into meme magic.
           </p>
-          <ul className="list-disc pl-5 text-neutral-300 space-y-2">
-            <li>Culturally familiar: everyone experiences it</li>
-            <li>Emotionally sticky: sparks strong reactions</li>
-            <li>Infinitely memeable visuals & prompts</li>
-          </ul>
-        </div>
-        <CalloutCard />
-      </div>
-    </section>
-  );
-}
-
-function CalloutCard() {
-  return (
-    <Card className="rounded-2xl bg-gradient-to-br from-cyan-500/10 via-fuchsia-500/10 to-amber-400/10 border-white/10">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          Patterns in chaos <LinkIcon className="h-4 w-4" />
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <p className="text-neutral-300">
-          If you’ve ever seen a face in your toast or an animal in the clouds — you’ve experienced Pareidolia. We’re
-          turning that shared moment into a community and a joke (that might just go places).
-        </p>
-        <div className="flex flex-wrap gap-2">
-          <Badge className="rounded-full">#facesineverything</Badge>
-          <Badge className="rounded-full">#pareidolia</Badge>
-          <Badge className="rounded-full">#patternrecognition</Badge>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-function Roadmap() {
-  const phases = [
-    {
-      title: "Phase 1 – First Faces",
-      points: ["Launch PAREIDOLIA & seed early memes", "Establish Telegram & X Community", "List on DEX + publish CA"],
-    },
-    { title: "Phase 2 – Pattern Surge", points: ["X-driven visual prompts and threads", "Collabs with artists & memers", "Weekly recognition challenges"] },
-    { title: "Phase 3 – Global Vision", points: ["Cross-community partnerships", "IRL pareidolia scavenger hunts", "Bigger meme contests & cultural takeover"] },
-  ];
-  return (
-    <section id="roadmap" className="relative py-20">
-      <div className="mb-8 text-center">
-        <h2 className="text-2xl sm:text-3xl font-bold">Roadmap – Pattern Recognition</h2>
-        <p className="mt-2 text-neutral-300">We advance as the patterns emerge.</p>
-      </div>
-      <div className="grid gap-6 md:grid-cols-3">
-        {phases.map((p, i) => (
-          <Card key={i} className="rounded-2xl bg-white/5 border-white/10">
-            <CardHeader>
-              <CardTitle>{p.title}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="list-disc pl-5 text-neutral-300 space-y-2">
-                {p.points.map((pt, j) => (
-                  <li key={j}>{pt}</li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function JoinUs() {
-  return (
-    <section id="join" className="relative py-20">
-      <div className="mx-auto max-w-2xl text-center">
-        <h2 className="text-2xl sm:text-3xl font-bold">Join us</h2>
-        <p className="mt-3 text-neutral-300">
-          The fun isn’t on the website — it’s in the community. Join our X group and Telegram to see what everyone else
-          is seeing… and maybe spot patterns no one else noticed.
-        </p>
-        <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
+        </motion.div>
+        
+        <motion.div
+          className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+        >
           <Button asChild size="lg" className="rounded-2xl">
-            <a href={LINKS.telegram} target="_blank" rel="noreferrer">
-              Join Telegram <Send className="ml-2 h-4 w-4" />
+            <a href={LINKS.dex} target="_blank" rel="noreferrer">
+              <TrendingUp className="mr-2 h-4 w-4" />
+              Trade $PAREIDOLIA
             </a>
           </Button>
+          
           <Button asChild variant="secondary" size="lg" className="rounded-2xl">
-            <a href={LINKS.xCommunity} target="_blank" rel="noreferrer">
-              Join X Community <Twitter className="ml-2 h-4 w-4" />
-            </a>
+            <Link href="/meme">
+              <ImageIcon className="mr-2 h-4 w-4" />
+              Meme Generator
+            </Link>
+          </Button>
+          
+          <Button asChild variant="outline" size="lg" className="rounded-2xl border-white/20 text-white hover:bg-white/10">
+            <Link href="/contest">
+              <Trophy className="mr-2 h-4 w-4" />
+              Legacy Contest
+            </Link>
+          </Button>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
+/* --------------------------- BUYBACK & BURN WIDGET --------------------------- */
+
+function BuybackBurnWidget() {
+  return (
+    <section className="relative py-8">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.6, delay: 0.4 }}
+      >
+        <Card className="rounded-2xl bg-gradient-to-br from-orange-500/10 via-red-500/10 to-pink-500/10 border-red-500/20">
+          <CardHeader className="text-center">
+            <CardTitle className="flex items-center justify-center gap-2 text-2xl">
+              <Flame className="h-6 w-6 text-orange-400" />
+              Buyback &amp; Burn Program
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-3">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-orange-400">TBA</div>
+                <div className="text-sm text-neutral-400">Total Burned</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-red-400">TBA</div>
+                <div className="text-sm text-neutral-400">Last Burn Event</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-pink-400">TBA</div>
+                <div className="text-sm text-neutral-400">Burn Value</div>
+              </div>
+            </div>
+            
+            <div className="text-center pt-2">
+              <p className="text-sm text-neutral-300">
+                Automatic buyback and burn events create deflationary pressure. 
+                Transparency reports coming soon.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+    </section>
+  );
+}
+
+/* ----------------------------- COIN LIST SECTION ----------------------------- */
+
+function CoinListSection({ onMemeClick }: { onMemeClick: (symbol: string) => void }) {
+  return (
+    <section className="relative py-12">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.6 }}
+      >
+        <div className="mb-8 text-center">
+          <h2 className="text-3xl sm:text-4xl font-bold mb-4">Discover Coins</h2>
+          <p className="text-lg text-neutral-300 max-w-2xl mx-auto">
+            Explore the growing ecosystem of Solana meme coins. Find the next gem, 
+            check live metrics, and create memes that matter.
+          </p>
+        </div>
+        
+        <CoinList onMemeClick={onMemeClick} />
+      </motion.div>
+    </section>
+  );
+}
+
+/* ----------------------------- LEGACY LINKS ----------------------------- */
+
+function LegacyLinks() {
+  return (
+    <section className="relative py-12">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.8 }}
+        className="text-center"
+      >
+        <div className="mb-6">
+          <h3 className="text-xl font-semibold text-neutral-400 mb-2">More Ways to Participate</h3>
+          <p className="text-neutral-500 text-sm">
+            The original contest and community features are still available
+          </p>
+        </div>
+        
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          <Button asChild variant="ghost" className="rounded-2xl text-neutral-400 hover:text-white">
+            <Link href="/contest">
+              <Trophy className="mr-2 h-4 w-4" />
+              Meme Contest
+            </Link>
+          </Button>
+          
+          <Button asChild variant="ghost" className="rounded-2xl text-neutral-400 hover:text-white">
+            <Link href="/submit">
+              Submit Entry
+            </Link>
+          </Button>
+          
+          <Button asChild variant="ghost" className="rounded-2xl text-neutral-400 hover:text-white">
+            <Link href="/leaderboard">
+              Leaderboard
+            </Link>
           </Button>
         </div>
-      </div>
+      </motion.div>
     </section>
   );
 }
@@ -449,25 +210,32 @@ function JoinUs() {
 
 function Footer() {
   return (
-    <footer className="relative mt-10 border-t border-white/5 bg-neutral-950/60">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="text-sm text-neutral-400">© {new Date().getFullYear()} PAREIDOLIA</div>
-        <div className="flex items-center gap-3">
-          <Button asChild variant="outline" className="rounded-2xl border-white/20 text-white hover:bg-white/10">
-            <a href={LINKS.dex} target="_blank" rel="noreferrer">
-              Buy <ExternalLink className="ml-2 h-4 w-4" />
-            </a>
-          </Button>
-          <Button asChild variant="ghost" className="rounded-2xl text-neutral-300 hover:text-white">
-            <a href={LINKS.xCommunity} target="_blank" rel="noreferrer">
-              X <Twitter className="ml-2 h-4 w-4" />
-            </a>
-          </Button>
-          <Button asChild variant="ghost" className="rounded-2xl text-neutral-300 hover:text-white">
-            <a href={LINKS.telegram} target="_blank" rel="noreferrer">
-              Telegram <Send className="ml-2 h-4 w-4" />
-            </a>
-          </Button>
+    <footer className="relative mt-16 border-t border-white/5 bg-neutral-950/80">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="text-sm text-neutral-400">
+            © {new Date().getFullYear()} Pareidolia Coin Hub
+          </div>
+          
+          <div className="flex items-center gap-3">
+            <Button asChild variant="outline" className="rounded-2xl border-white/20 text-white hover:bg-white/10">
+              <a href={LINKS.dex} target="_blank" rel="noreferrer">
+                Trade <ExternalLink className="ml-2 h-4 w-4" />
+              </a>
+            </Button>
+            
+            <Button asChild variant="ghost" className="rounded-2xl text-neutral-300 hover:text-white">
+              <a href={LINKS.xCommunity} target="_blank" rel="noreferrer">
+                Community <ExternalLink className="ml-2 h-4 w-4" />
+              </a>
+            </Button>
+            
+            <Button asChild variant="ghost" className="rounded-2xl text-neutral-300 hover:text-white">
+              <a href={LINKS.telegram} target="_blank" rel="noreferrer">
+                Telegram <ExternalLink className="ml-2 h-4 w-4" />
+              </a>
+            </Button>
+          </div>
         </div>
       </div>
     </footer>
@@ -482,7 +250,6 @@ function AnimatedBackground() {
       <div className="absolute left-1/2 top-1/2 h-[120vmax] w-[120vmax] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle_at_center,rgba(56,189,248,0.08),transparent_60%)]" />
       <Blob className="left-[-10%] top-[-10%]" delay={0} />
       <Blob className="right-[-15%] bottom-[-15%]" delay={8} />
-      <PareidoliaEyes />
       <GridNoise />
     </div>
   );
@@ -492,320 +259,18 @@ function Blob({ className = "", delay = 0 }: { className?: string; delay?: numbe
   return (
     <motion.div
       className={`absolute h-[42vmax] w-[42vmax] rounded-[40%] bg-gradient-to-tr from-fuchsia-500/20 via-cyan-500/20 to-amber-400/20 blur-3xl ${className}`}
-      animate={{ borderRadius: ["40%", "45% 35% 50% 40%", "50%", "35% 55% 45% 60%", "40%"], x: [0, 50, -40, 30, 0], y: [0, -30, 40, -20, 0] }}
+      animate={{ 
+        borderRadius: ["40%", "45% 35% 50% 40%", "50%", "35% 55% 45% 60%", "40%"], 
+        x: [0, 50, -40, 30, 0], 
+        y: [0, -30, 40, -20, 0] 
+      }}
       transition={{ duration: 24, ease: "easeInOut", repeat: Infinity, delay }}
     />
   );
 }
 
 function GridNoise() {
-  return <div className="absolute inset-0 opacity-[0.08] [background:repeating-linear-gradient(0deg,transparent,transparent_2px,rgba(255,255,255,0.03)_2px,rgba(255,255,255,0.03)_4px)]" />;
-}
-
-function PareidoliaEyes() {
   return (
-    <div className="absolute left-1/2 top-[28%] -translate-x-1/2">
-      <motion.div
-        className="h-24 w-[44rem] max-w-[90vw]"
-        animate={{ opacity: [0, 0.25, 0] }}
-        transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 4 }}
-      >
-        <svg viewBox="0 0 880 120" className="h-full w-full">
-          <path d="M20,80 Q440,-40 860,80" stroke="rgba(255,255,255,0.25)" strokeWidth="2" fill="none" />
-          <path d="M20,100 Q440,-20 860,100" stroke="rgba(255,255,255,0.18)" strokeWidth="2" fill="none" />
-        </svg>
-      </motion.div>
-    </div>
-  );
-}
-
-/* ------------------------------- EGG FX ------------------------------- */
-
-function EasterEggFace() {
-  const [show, setShow] = useState(false);
-  useEffect(() => {
-    // timed reveal
-    const t = setTimeout(() => setShow(true), 15000);
-    const t2 = setTimeout(() => setShow(false), 20000);
-
-    // custom event trigger
-    const onEgg = () => {
-      setShow(true);
-      setTimeout(() => setShow(false), 6000);
-    };
-    window.addEventListener("pareidolia:egg", onEgg as unknown as EventListener);
-
-    return () => {
-      clearTimeout(t);
-      clearTimeout(t2);
-      window.removeEventListener("pareidolia:egg", onEgg as unknown as EventListener);
-    };
-  }, []);
-
-  if (!show) return null;
-  return (
-    <div className="pointer-events-none fixed inset-0 -z-0 flex items-center justify-center">
-      <motion.div
-        initial={{ scale: 0.96, opacity: 0 }}
-        animate={{ scale: 1, opacity: 0.15 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 1.2 }}
-        className="relative h-[40vmin] w-[40vmin]"
-      >
-        <svg viewBox="0 0 200 200" className="h-full w-full">
-          <circle cx="100" cy="100" r="95" fill="none" stroke="white" strokeOpacity="0.35" />
-          <circle cx="70" cy="90" r="10" fill="white" fillOpacity="0.35" />
-          <circle cx="130" cy="90" r="10" fill="white" fillOpacity="0.35" />
-          <path d="M60,130 Q100,155 140,130" stroke="white" strokeOpacity="0.35" fill="none" strokeWidth="4" />
-        </svg>
-      </motion.div>
-    </div>
-  );
-}
-
-/* ------------------------------ DEV TESTS ----------------------------- */
-
-function DevTests() {
-  return (
-    <section className="relative py-10">
-      <div className="mb-4 text-sm text-neutral-400">DEV TESTS (set __SHOW_TESTS__ = true to display)</div>
-      <CopyableAddress address="TEST-ADDRESS-1234567890" />
-    </section>
-  );
-}
-
-/* -------------------------- SECRET TYPE UNLOCK ------------------------- */
-
-function SecretTypeUnlock({
-  secret,
-  password = "PAREIDOLIA-FOUND-YOU",
-}: {
-  secret: string;
-  password?: string;
-}) {
-  const [open, setOpen] = useState(false);
-  const [copied, setCopied] = useState(false);
-
-  const target = secret.toLowerCase().replace(/\s+/g, "");
-  const idxRef = useRef(0);
-
-  useEffect(() => {
-    if (sessionStorage.getItem("pareidolia:egg:done")) return;
-
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key.length !== 1) return;
-      const ch = e.key.toLowerCase();
-      if (!/[a-z0-9]/.test(ch)) return;
-
-      const i = idxRef.current;
-      const expected = target[i];
-
-      if (ch === expected) {
-        idxRef.current = i + 1;
-        if (idxRef.current === target.length) {
-          sessionStorage.setItem("pareidolia:egg:done", "1");
-          idxRef.current = 0;
-          setOpen(true);
-          try {
-            window.dispatchEvent(new CustomEvent("pareidolia:egg"));
-          } catch {}
-        }
-      } else {
-        idxRef.current = ch === target[0] ? 1 : 0;
-      }
-    };
-
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [target]);
-
-  const copyPw = async () => {
-    try {
-      const okModern = await tryClipboardWrite(password);
-      if (okModern) {
-        setCopied(true);
-        setTimeout(() => setCopied(false), 1200);
-        return;
-      }
-    } catch {}
-    const okLegacy = execCommandFallback(password);
-    if (okLegacy) {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1200);
-      return;
-    }
-  };
-
-  if (!open) return null;
-
-  return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setOpen(false)} />
-      <Card className="relative z-[61] max-w-md w-full border-white/10 bg-gradient-to-br from-cyan-500/10 via-fuchsia-500/10 to-amber-400/10">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">🎉 Secret Unlocked</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-neutral-300">
-            You typed the full contract address. Post this password in the Telegram chat to claim your prize:
-          </p>
-          <div className="flex items-center gap-2">
-            <code className="block flex-1 rounded-xl bg-black/40 px-3 py-2 text-sm">{password}</code>
-            <Button variant="outline" className="rounded-2xl border-white/20 text-white hover:bg-white/10" onClick={copyPw}>
-              {copied ? (
-                <>
-                  <Check className="mr-2 h-4 w-4" /> Copied
-                </>
-              ) : (
-                <>
-                  <Copy className="mr-2 h-4 w-4" /> Copy
-                </>
-              )}
-            </Button>
-          </div>
-          <p className="text-xs text-neutral-400">(Type-only • Case-insensitive • One-time per session)</p>
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
-
-/* ------------------------------ HINT MODAL ----------------------------- */
-
-function HintModal({
-  open,
-  onClose,
-  tweetText,
-}: {
-  open: boolean;
-  onClose: () => void;
-  tweetText: string;
-}) {
-  const [step, setStep] = useState<"ask" | "hint">("ask");
-  const [copied, setCopied] = useState(false);
-  const [link, setLink] = useState("");
-
-  useEffect(() => {
-    if (!open) {
-      setStep("ask");
-      setCopied(false);
-      setLink("");
-    }
-  }, [open]);
-
-  const copyTweet = async () => {
-    try {
-      const ok = await tryClipboardWrite(tweetText);
-      if (ok) {
-        setCopied(true);
-        setTimeout(() => setCopied(false), 1200);
-        return;
-      }
-    } catch {}
-    const okLegacy = execCommandFallback(tweetText);
-    if (okLegacy) {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1200);
-    }
-  };
-
-  if (!open) return null;
-
-  const xIntent = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`;
-
-  return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <Card className="relative z-[71] w-full max-w-lg border-white/10 bg-white/5">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">{step === "ask" ? "Want a hint?" : "Your hint"}</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {step === "ask" ? (
-            <>
-              <p className="text-neutral-300">Share PAREIDOLIA on X to receive a small nudge toward the Easter egg.</p>
-
-              <div className="space-y-2">
-                <label className="text-xs text-neutral-400">Suggested post</label>
-                <div className="rounded-xl bg-black/30 p-3 text-sm">{tweetText}</div>
-                <div className="flex gap-2">
-                  <Button onClick={copyTweet} variant="outline" className="rounded-2xl border-white/20 text-white hover:bg-white/10">
-                    {copied ? (
-                      <>
-                        <Check className="mr-2 h-4 w-4" /> Copied
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="mr-2 h-4 w-4" /> Copy text
-                      </>
-                    )}
-                  </Button>
-                  <Button asChild className="rounded-2xl">
-                    <a href={xIntent} target="_blank" rel="noreferrer">
-                      Post on X <ExternalLink className="ml-2 h-4 w-4" />
-                    </a>
-                  </Button>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-xs text-neutral-400">Paste your post link (optional)</label>
-                <textarea
-                  value={link}
-                  onChange={(e) => setLink(e.target.value)}
-                  placeholder="https://x.com/your-handle/status/..."
-                  className="w-full rounded-xl border border-white/20 bg-black/30 p-3 text-sm text-white placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
-                  rows={2}
-                />
-              </div>
-
-              <div className="flex items-center justify-end gap-2">
-                <Button variant="ghost" className="rounded-2xl" onClick={onClose}>
-                  Close
-                </Button>
-                <Button className="rounded-2xl" onClick={() => setStep("hint")}>
-                  Send & get hint
-                </Button>
-              </div>
-            </>
-        ) : (
-  <>
-    <p className="text-neutral-300">Here’s your poetic clue. Good luck…</p>
-
-    {/* HINT #1 – mindenki láthatja */}
-    <div className="rounded-xl border border-white/10 bg-gradient-to-br from-cyan-500/10 via-fuchsia-500/10 to-amber-400/10 p-4">
-      <p className="whitespace-pre-line text-sm leading-relaxed text-neutral-200">
-{`When clouds stand still and hush the sky,
-a face will bloom where edges lie.
-Not shouted loud, but softly shown—
-let patience guide what can’t be known.`}
-      </p>
-    </div>
-
-    {/* HINT #2 – csak token-tartóknak */}
-    <div className="mt-4">
-      <HolderGate
-        title="Unlock deeper hint (holders only)"
-        requireAmountText="Connect your wallet and hold any amount of $PAREIDOLIA to reveal the deeper hint."
-      >
-        <div className="rounded-xl border border-white/10 bg-gradient-to-tr from-amber-400/10 via-fuchsia-500/10 to-cyan-500/10 p-4">
-          <p className="whitespace-pre-line text-sm leading-relaxed text-neutral-200">
-{`Where whispers curl in silver mist,
-seek not the shout, but what you missed.
-Between the beats a shape will start—
-the quiet curve becomes the heart.`}
-          </p>
-        </div>
-      </HolderGate>
-    </div>
-
-    <div className="flex items-center justify-end gap-2">
-      <Button className="rounded-2xl" onClick={onClose}>Got it</Button>
-    </div>
-  </>
-)}
-        </CardContent>
-      </Card>
-    </div>
+    <div className="absolute inset-0 opacity-[0.08] [background:repeating-linear-gradient(0deg,transparent,transparent_2px,rgba(255,255,255,0.03)_2px,rgba(255,255,255,0.03)_4px)]" />
   );
 }

@@ -4,7 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
-import { Lock, Settings, Trophy, ShieldAlert } from "lucide-react";
+import { Lock, Settings, Trophy, ShieldAlert, Coins } from "lucide-react";
 
 function parseAllowed(): string[] {
   if (typeof process === "undefined") return [];
@@ -140,7 +140,7 @@ export default function AdminHomePage() {
       </div>
 
       {/* Admin csempék */}
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <Link
           href="/admin/contest"
           className={`rounded-2xl border border-white/10 p-5 transition ${
@@ -168,6 +168,21 @@ export default function AdminHomePage() {
           <h2 className="text-lg font-semibold">Open Moderation</h2>
           <p className="text-sm text-neutral-400">
             Review and curate community-submitted base images.
+          </p>
+        </Link>
+        
+        <Link
+          href="/admin/coins/new"
+          className={`rounded-2xl border border-white/10 p-5 transition ${
+            authed ? "bg-white/5 hover:bg-white/10" : "bg-white/[0.03] opacity-60 pointer-events-none"
+          }`}
+        >
+          <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-white/10">
+            <Coins className="h-5 w-5" />
+          </div>
+          <h2 className="text-lg font-semibold">Manage Coins</h2>
+          <p className="text-sm text-neutral-400">
+            Add new coins to the Pareidolia Coin Hub.
           </p>
         </Link>
       </div>
