@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, Trophy, Upload } from "lucide-react";
+import { ExternalLink, Trophy, Upload, FileText } from "lucide-react";
 
 const LINKS = {
   telegram: "https://t.me/pareidoliaportal",
