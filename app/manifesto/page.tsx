@@ -32,7 +32,7 @@ export default function ManifestoPage() {
           <section>
             <h2 className="text-2xl font-bold text-white mb-4">PREAMBLE</h2>
             <p>
-              We, the builders, scouts, remixers, and believers in the original spirit of decentralized culture, stand together against hollow hype cycles, extractive insiders, and low‑effort meme parasitism. Bitcoin proved that a shared narrative plus open infrastructure can rewrite value. Pareidolia—the human instinct to see faces and forms in randomness—is an infinite cultural substrate. We harness that universal glitch to create an ecosystem where illusion → meme → on‑chain expression → value feedback → new illusion.
+              We, the builders, scouts, remixers, and believers in the original spirit of decentralized culture, stand together against hollow hype cycles, extractive insiders, and low‑effort meme parasitism. Bitcoin proved that a shared narrative plus open infrastructure can rewrite value. Pareidolia is an infinite cultural substrate. We harness that universal glitch to create an ecosystem where illusion → meme → on‑chain expression → value feedback → new illusion.
             </p>
             <p>
               We reject derivative cash-grab clones that siphon attention without adding creative or symbolic substance. We stand for transparency, fair emergence, attribution of creative input, and a free market where pattern discovery—not private privilege—drives momentum.
