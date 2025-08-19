@@ -13,10 +13,13 @@ export type Coin = {
   telegram?: string;
   dexUrl?: string;
   explorerUrl?: string;
-  // Future metrics (placeholders for now)
-  price?: number;
-  volume24h?: number;
-  liquidity?: number;
+  // Market data fields
+  price?: number | null;
+  volume24h?: number | null;
+  liquidity?: number | null;
+  marketCap?: number | null;
+  priceChange24h?: number | null;
+  lastSyncAt?: string | null;
   holders?: number;
 };
 
