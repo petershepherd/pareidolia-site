@@ -1,0 +1,1 @@
+// Suggesting to set the sync interval to 10 minutes as per user request.
