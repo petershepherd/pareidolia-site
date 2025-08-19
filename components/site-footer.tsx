@@ -57,6 +57,13 @@ export function SiteFooter() {
                 <Trophy className="inline h-4 w-4 mr-2" />
                 Leaderboard
               </Link>
+               <Link 
+                href="/manifesto" 
+                className="block text-sm text-neutral-400 hover:text-white transition-colors"
+              >
+                <FileText className="inline h-4 w-4 mr-2" />
+                Manifesto
+              </Link>
             </nav>
           </div>
 
