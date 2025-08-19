@@ -165,9 +165,9 @@ export function CoinList({ onMemeClick }: CoinListProps) {
         </div>
       )}
       
-      {/* Coins grid */}
+      {/* Coins horizontal scroll */}
       {!loading && !error && coins.length > 0 && (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="flex gap-6 overflow-x-auto pb-4 scrollbar-hide">
           {coins.map((coin) => (
             <CoinCard
               key={coin.id}

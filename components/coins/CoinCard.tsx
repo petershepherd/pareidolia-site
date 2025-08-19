@@ -47,7 +47,7 @@ export function CoinCard({ coin, onMemeClick }: CoinCardProps) {
   };
 
   return (
-    <Card className="rounded-2xl bg-white/5 border-white/10 hover:bg-white/10 transition-colors">
+    <Card className="rounded-2xl bg-white/5 border-white/10 hover:bg-white/10 transition-colors min-w-[320px] flex-shrink-0">
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div>
