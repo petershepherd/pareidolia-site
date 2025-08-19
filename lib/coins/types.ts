@@ -1,5 +1,13 @@
 // lib/coins/types.ts
 
+export type PareidoliaPatternType = 
+  | 'faces'
+  | 'animals' 
+  | 'objects'
+  | 'landscapes'
+  | 'abstract'
+  | 'mixed';
+
 export type Coin = {
   id: string;
   symbol: string;
@@ -13,11 +21,33 @@ export type Coin = {
   telegram?: string;
   dexUrl?: string;
   explorerUrl?: string;
-  // Future metrics (placeholders for now)
+  
+  // Market data
   price?: number;
+  marketCap?: number;
   volume24h?: number;
   liquidity?: number;
   holders?: number;
+  change24h?: number; // Percentage change
+  
+  // Pareidolia-specific metrics
+  pareidoliaScore?: number; // 0-100 score
+  patternType?: PareidoliaPatternType;
+  visualSimilarity?: number; // 0-100 similarity score
+  patternStrength?: number; // 0-100 strength of pattern recognition
+  
+  // Social metrics  
+  twitterFollowers?: number;
+  telegramMembers?: number;
+  
+  // Launch data
+  creatorWallet?: string;
+  launchPrice?: number;
+  
+  // Additional trading metrics
+  ath?: number; // All time high
+  atl?: number; // All time low
+  fdv?: number; // Fully diluted valuation
 };
 
 export type BurnEvent = {
