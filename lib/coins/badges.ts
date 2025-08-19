@@ -16,6 +16,13 @@ export function deriveCoinStatus(coin: Coin): CoinStatus {
   }
 }
 
+export function getCoinAgeInDays(coin: Coin): number {
+  const now = new Date();
+  const created = new Date(coin.createdAt);
+  const ageInDays = Math.floor((now.getTime() - created.getTime()) / (1000 * 60 * 60 * 24));
+  return Math.max(0, ageInDays);
+}
+
 export function getStatusBadgeClassName(status: CoinStatus): string {
   switch (status) {
     case 'NEW':
