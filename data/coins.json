@@ -12,7 +12,13 @@
       "twitter": "https://x.com/i/communities/1954506369618391171",
       "telegram": "https://t.me/pareidoliaportal",
       "dexUrl": "https://letsbonk.fun/token/BXrwn2UWEeUAKghP8hatpW4i5AMchdscTzchMYE4bonk",
-      "explorerUrl": "https://solscan.io/token/BXrwn2UWEeUAKghP8hatpW4i5AMchdscTzchMYE4bonk"
+      "explorerUrl": "https://solscan.io/token/BXrwn2UWEeUAKghP8hatpW4i5AMchdscTzchMYE4bonk",
+      "price": 0.000123,
+      "volume24h": 45678.90,
+      "liquidity": 125000.50,
+      "marketCap": 450000.75,
+      "priceChange24h": 15.67,
+      "lastSyncAt": "2025-01-19T17:30:00.000Z"
     }
   ],
   "burnEvents": []

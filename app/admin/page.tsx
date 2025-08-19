@@ -4,7 +4,8 @@ import * as React from "react";
 import Link from "next/link";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
-import { Lock, Settings, Trophy, ShieldAlert, Coins } from "lucide-react";
+import { Lock, Settings, Trophy, ShieldAlert, Coins, RefreshCw } from "lucide-react";
+import { SyncControls } from "@/components/admin/SyncControls";
 
 function parseAllowed(): string[] {
   if (typeof process === "undefined") return [];
@@ -140,6 +141,12 @@ export default function AdminHomePage() {
       </div>
 
       {/* Admin csempék */}
+      {authed && (
+        <div className="mb-6">
+          <SyncControls />
+        </div>
+      )}
+      
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <Link
           href="/admin/contest"

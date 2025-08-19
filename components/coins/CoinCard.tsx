@@ -4,9 +4,10 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Copy, Check, ExternalLink, Twitter, Send, TrendingUp } from 'lucide-react';
+import { Copy, Check, ExternalLink, Twitter, Send, TrendingUp, ArrowUp, ArrowDown, Clock } from 'lucide-react';
 import { CoinWithStatus } from '@/lib/coins/types';
 import { getStatusBadgeClassName, getStatusLabel } from '@/lib/coins/badges';
+import { formatPrice, formatVolume, formatMarketCap, formatPriceChange, formatLiquidity, formatTimestamp } from '@/lib/utils/formatting';
 
 type CoinCardProps = {
   coin: CoinWithStatus;
@@ -71,25 +72,53 @@ export function CoinCard({ coin, onMemeClick }: CoinCardProps) {
       </CardHeader>
       
       <CardContent className="space-y-4">
-        {/* Metrics placeholders */}
+        {/* Market Data */}
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>
             <span className="text-neutral-400">Price:</span>
-            <span className="ml-1">{coin.price ? `$${coin.price.toFixed(6)}` : 'TBA'}</span>
+            <div className="flex items-center gap-1 mt-1">
+              <span className="font-medium">{formatPrice(coin.price)}</span>
+              {coin.priceChange24h !== null && coin.priceChange24h !== undefined && (
+                (() => {
+                  const priceChange = formatPriceChange(coin.priceChange24h);
+                  return (
+                    <span className={`flex items-center gap-1 text-xs ${
+                      priceChange.isPositive 
+                        ? 'text-green-400' 
+                        : priceChange.isNegative 
+                          ? 'text-red-400' 
+                          : 'text-neutral-400'
+                    }`}>
+                      {priceChange.isPositive && <ArrowUp className="h-3 w-3" />}
+                      {priceChange.isNegative && <ArrowDown className="h-3 w-3" />}
+                      {priceChange.formatted}
+                    </span>
+                  );
+                })()
+              )}
+            </div>
           </div>
           <div>
-            <span className="text-neutral-400">Volume:</span>
-            <span className="ml-1">{coin.volume24h ? `$${coin.volume24h.toLocaleString()}` : 'TBA'}</span>
+            <span className="text-neutral-400">Volume 24h:</span>
+            <div className="font-medium mt-1">{formatVolume(coin.volume24h)}</div>
           </div>
           <div>
             <span className="text-neutral-400">Liquidity:</span>
-            <span className="ml-1">{coin.liquidity ? `$${coin.liquidity.toLocaleString()}` : 'TBA'}</span>
+            <div className="font-medium mt-1">{formatLiquidity(coin.liquidity)}</div>
           </div>
           <div>
-            <span className="text-neutral-400">Holders:</span>
-            <span className="ml-1">{coin.holders ? coin.holders.toLocaleString() : 'TBA'}</span>
+            <span className="text-neutral-400">Market Cap:</span>
+            <div className="font-medium mt-1">{formatMarketCap(coin.marketCap)}</div>
           </div>
         </div>
+        
+        {/* Sync Status */}
+        {coin.lastSyncAt && (
+          <div className="flex items-center gap-2 text-xs text-neutral-400">
+            <Clock className="h-3 w-3" />
+            <span>Last updated: {formatTimestamp(coin.lastSyncAt)}</span>
+          </div>
+        )}
         
         {/* Contract Address */}
         <div className="space-y-2">
