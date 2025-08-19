@@ -4,9 +4,9 @@ import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Search, Filter } from 'lucide-react';
-import { CoinCard } from './CoinCard';
+import { Search, Filter, Copy, Check, ExternalLink, Twitter, Send, TrendingUp } from 'lucide-react';
 import { CoinWithStatus } from '@/lib/coins/types';
+import { getStatusBadgeClassName, getStatusLabel, getCoinAgeInDays } from '@/lib/coins/badges';
 
 type CoinListProps = {
   onMemeClick?: (coinSymbol: string) => void;
@@ -16,6 +16,7 @@ export function CoinList({ onMemeClick }: CoinListProps) {
   const [coins, setCoins] = useState<CoinWithStatus[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [copiedAddress, setCopiedAddress] = useState<string | null>(null);
   
   // Filters
   const [search, setSearch] = useState('');
@@ -71,6 +72,35 @@ export function CoinList({ onMemeClick }: CoinListProps) {
     { value: 'EARLY', label: 'Early' },
     { value: 'ESTABLISHED', label: 'Established' },
   ];
+  
+  const handleCopyContract = async (contractAddress: string) => {
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(contractAddress);
+      } else {
+        // Fallback
+        const textarea = document.createElement('textarea');
+        textarea.value = contractAddress;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+      }
+      setCopiedAddress(contractAddress);
+      setTimeout(() => setCopiedAddress(null), 1500);
+    } catch (error) {
+      console.error('Failed to copy contract address:', error);
+    }
+  };
+
+  const handleMemeClick = (coinSymbol: string) => {
+    if (onMemeClick) {
+      onMemeClick(coinSymbol);
+    } else {
+      // Fallback to direct link with deep link parameter
+      window.open(`/meme?coin=${coinSymbol}`, '_blank');
+    }
+  };
   
   return (
     <div className="space-y-6">
@@ -165,16 +195,141 @@ export function CoinList({ onMemeClick }: CoinListProps) {
         </div>
       )}
       
-      {/* Coins grid */}
+      {/* Coins table */}
       {!loading && !error && coins.length > 0 && (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {coins.map((coin) => (
-            <CoinCard
-              key={coin.id}
-              coin={coin}
-              onMemeClick={onMemeClick}
-            />
-          ))}
+      <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-white/10">
+                <th className="text-left py-3 px-4 text-sm font-medium text-neutral-400">Coin</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-neutral-400">Status</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-neutral-400 hidden sm:table-cell">Age</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-neutral-400 hidden md:table-cell">Contract Address</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-neutral-400">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {coins.map((coin) => (
+                <tr key={coin.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+                  {/* Coin Name/Symbol */}
+                  <td className="py-4 px-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
+                        <span className="text-xs font-bold text-white">
+                          {coin.symbol.charAt(0)}
+                        </span>
+                      </div>
+                      <div>
+                        <div className="font-medium text-white">{coin.name}</div>
+                        <div className="text-sm text-neutral-400">${coin.symbol}</div>
+                      </div>
+                    </div>
+                  </td>
+                  
+                  {/* Status */}
+                  <td className="py-4 px-4">
+                    <Badge className={`text-xs border ${getStatusBadgeClassName(coin.status)}`}>
+                      {getStatusLabel(coin.status)}
+                    </Badge>
+                  </td>
+                  
+                  {/* Age - hidden on mobile */}
+                  <td className="py-4 px-4 hidden sm:table-cell">
+                    <span className="text-neutral-300">
+                      {getCoinAgeInDays(coin)} days
+                    </span>
+                  </td>
+                  
+                  {/* Contract Address - hidden on mobile/tablet */}
+                  <td className="py-4 px-4 hidden md:table-cell">
+                    <div className="flex items-center gap-2">
+                      <code className="text-xs bg-black/30 rounded px-2 py-1 text-neutral-300 max-w-32 truncate">
+                        {coin.contractAddress}
+                      </code>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-6 w-6 p-0 text-neutral-400 hover:text-white"
+                        onClick={() => handleCopyContract(coin.contractAddress)}
+                      >
+                        {copiedAddress === coin.contractAddress ? (
+                          <Check className="h-3 w-3" />
+                        ) : (
+                          <Copy className="h-3 w-3" />
+                        )}
+                      </Button>
+                    </div>
+                  </td>
+                  
+                  {/* Actions */}
+                  <td className="py-4 px-4">
+                    <div className="flex items-center gap-1">
+                      {coin.dexUrl && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-8 w-8 p-0 text-neutral-400 hover:text-white"
+                          asChild
+                        >
+                          <a href={coin.dexUrl} target="_blank" rel="noreferrer" title="Trade">
+                            <TrendingUp className="h-3 w-3" />
+                          </a>
+                        </Button>
+                      )}
+                      
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 px-2 text-xs text-neutral-400 hover:text-white"
+                        onClick={() => handleMemeClick(coin.symbol)}
+                      >
+                        Meme
+                      </Button>
+                      
+                      {coin.twitter && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-8 w-8 p-0 text-neutral-400 hover:text-white"
+                          asChild
+                        >
+                          <a href={coin.twitter} target="_blank" rel="noreferrer" title="Twitter">
+                            <Twitter className="h-3 w-3" />
+                          </a>
+                        </Button>
+                      )}
+                      
+                      {coin.telegram && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-8 w-8 p-0 text-neutral-400 hover:text-white"
+                          asChild
+                        >
+                          <a href={coin.telegram} target="_blank" rel="noreferrer" title="Telegram">
+                            <Send className="h-3 w-3" />
+                          </a>
+                        </Button>
+                      )}
+                      
+                      {coin.explorerUrl && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-8 w-8 p-0 text-neutral-400 hover:text-white"
+                          asChild
+                        >
+                          <a href={coin.explorerUrl} target="_blank" rel="noreferrer" title="Explorer">
+                            <ExternalLink className="h-3 w-3" />
+                          </a>
+                        </Button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
     </div>
