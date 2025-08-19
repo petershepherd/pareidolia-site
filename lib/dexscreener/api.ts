@@ -2,6 +2,7 @@
 
 import { DexScreenerResponse, MarketData, SyncResult } from './types';
 import { dexscreenerConfig } from '../config/dexscreener';
+import marketDataCache from '../cache/market-data';
 
 const { apiBase, userAgent, maxRetries, retryDelayMs, requestTimeoutMs, batchSize, batchDelayMs } = dexscreenerConfig;
 
@@ -44,6 +45,18 @@ async function fetchWithRetry(url: string, options: RequestInit, retries = maxRe
 
 export async function fetchTokenMarketData(contractAddress: string): Promise<SyncResult> {
   try {
+    // Check cache first
+    const cacheKey = `market-data:${contractAddress}`;
+    const cachedData = marketDataCache.get(cacheKey);
+    
+    if (cachedData) {
+      console.log(`Using cached market data for token: ${contractAddress}`);
+      return {
+        success: true,
+        data: cachedData
+      };
+    }
+
     const url = `${apiBase}/tokens/${contractAddress}`;
     
     console.log(`Fetching market data for token: ${contractAddress}`);
@@ -86,6 +99,9 @@ export async function fetchTokenMarketData(contractAddress: string): Promise<Syn
       priceChange24h: bestPair.priceChange?.h24 || null,
       lastSyncAt: new Date().toISOString()
     };
+
+    // Cache the result for 3 minutes
+    marketDataCache.set(cacheKey, marketData, 3 * 60 * 1000);
 
     console.log(`Successfully fetched market data for ${contractAddress}:`, marketData);
 
