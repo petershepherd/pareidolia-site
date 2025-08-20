@@ -19,6 +19,7 @@ export type Coin = {
   liquidity?: number | null;
   marketCap?: number | null;
   priceChange24h?: number | null;
+  priceChangeLifetime?: number | null; // Lifetime price change percentage
   lastSyncAt?: string | null;
   holders?: number;
 };
