@@ -67,6 +67,17 @@ export function formatPriceChange(priceChange: number | null): {
 export function formatLiquidity(liquidity: number | null): string {
   return formatVolume(liquidity); // Same formatting as volume
 }
+export function formatHolders(holders: number | null): string {
+  if (holders === null || holders === undefined) return 'TBA';
+  
+  if (holders >= 1_000_000) {
+    return `${(holders / 1_000_000).toFixed(2)}M`;
+  } else if (holders >= 1_000) {
+    return `${(holders / 1_000).toFixed(1)}K`;
+  } else {
+    return `${holders.toFixed(0)}`;
+  }
+}
 
 export function formatTimestamp(timestamp: string | null): string {
   if (!timestamp) return 'Never';
