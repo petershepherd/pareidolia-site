@@ -18,7 +18,9 @@
       "liquidity": 125000.50,
       "marketCap": 450000.75,
       "priceChange24h": 15.67,
-      "lastSyncAt": "2025-01-19T17:30:00.000Z"
+      "priceChangeLifetime": 234.56,
+      "lastSyncAt": "2025-01-19T17:30:00.000Z",
+      "holders": 1250
     }
   ],
   "burnEvents": []
