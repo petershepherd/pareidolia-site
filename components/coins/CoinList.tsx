@@ -7,6 +7,14 @@ import { Badge } from '@/components/ui/badge';
 import { Search, Filter, Copy, Check, ExternalLink, Twitter, Send, TrendingUp } from 'lucide-react';
 import { CoinWithStatus } from '@/lib/coins/types';
 import { getStatusBadgeClassName, getStatusLabel, getCoinAgeInDays } from '@/lib/coins/badges';
+import { 
+  formatPrice, 
+  formatVolume, 
+  formatMarketCap, 
+  formatLiquidity, 
+  formatHolders, 
+  formatPriceChange 
+} from '@/lib/utils/formatting';
 
 type CoinListProps = {
   onMemeClick?: (coinSymbol: string) => void;
@@ -198,13 +206,18 @@ export function CoinList({ onMemeClick }: CoinListProps) {
       {/* Coins table */}
       {!loading && !error && coins.length > 0 && (
       <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full min-w-[1200px]">
             <thead>
               <tr className="border-b border-white/10">
                 <th className="text-left py-3 px-4 text-sm font-medium text-neutral-400">Coin</th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-neutral-400">Status</th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-neutral-400 hidden sm:table-cell">Age</th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-neutral-400 hidden md:table-cell">Contract Address</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-neutral-400">Mcap</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-neutral-400 hidden sm:table-cell">Holders</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-neutral-400 hidden sm:table-cell">Liquidity</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-neutral-400 hidden md:table-cell">Volume</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-neutral-400">Price</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-neutral-400 hidden sm:table-cell">24h%</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-neutral-400 hidden md:table-cell">Lifetime%</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-neutral-400 hidden lg:table-cell">Address</th>
                 <th className="text-left py-3 px-4 text-sm font-medium text-neutral-400">Actions</th>
               </tr>
             </thead>
@@ -226,22 +239,87 @@ export function CoinList({ onMemeClick }: CoinListProps) {
                     </div>
                   </td>
                   
-                  {/* Status */}
+                  {/* Market Cap */}
                   <td className="py-4 px-4">
-                    <Badge className={`text-xs border ${getStatusBadgeClassName(coin.status)}`}>
-                      {getStatusLabel(coin.status)}
-                    </Badge>
-                  </td>
-                  
-                  {/* Age - hidden on mobile */}
-                  <td className="py-4 px-4 hidden sm:table-cell">
                     <span className="text-neutral-300">
-                      {getCoinAgeInDays(coin)} days
+                      {formatMarketCap(coin.marketCap)}
                     </span>
                   </td>
                   
-                  {/* Contract Address - hidden on mobile/tablet */}
+                  {/* Holders - hidden on mobile */}
+                  <td className="py-4 px-4 hidden sm:table-cell">
+                    <span className="text-neutral-300">
+                      {formatHolders(coin.holders)}
+                    </span>
+                  </td>
+                  
+                  {/* Liquidity - hidden on mobile */}
+                  <td className="py-4 px-4 hidden sm:table-cell">
+                    <span className="text-neutral-300">
+                      {formatLiquidity(coin.liquidity)}
+                    </span>
+                  </td>
+                  
+                  {/* Volume - hidden on mobile/tablet */}
                   <td className="py-4 px-4 hidden md:table-cell">
+                    <span className="text-neutral-300">
+                      {formatVolume(coin.volume24h)}
+                    </span>
+                  </td>
+                  
+                  {/* Price */}
+                  <td className="py-4 px-4">
+                    <span className="text-neutral-300">
+                      {formatPrice(coin.price)}
+                    </span>
+                  </td>
+                  
+                  {/* 24h% - hidden on mobile */}
+                  <td className="py-4 px-4 hidden sm:table-cell">
+                    {coin.priceChange24h !== null && coin.priceChange24h !== undefined ? (
+                      (() => {
+                        const priceChange = formatPriceChange(coin.priceChange24h);
+                        return (
+                          <span className={`flex items-center gap-1 text-sm ${
+                            priceChange.isPositive 
+                              ? 'text-green-400' 
+                              : priceChange.isNegative 
+                                ? 'text-red-400' 
+                                : 'text-neutral-400'
+                          }`}>
+                            {priceChange.formatted}
+                          </span>
+                        );
+                      })()
+                    ) : (
+                      <span className="text-neutral-400 text-sm">TBA</span>
+                    )}
+                  </td>
+                  
+                  {/* Lifetime% - hidden on mobile/tablet */}
+                  <td className="py-4 px-4 hidden md:table-cell">
+                    {coin.priceChangeLifetime !== null && coin.priceChangeLifetime !== undefined ? (
+                      (() => {
+                        const lifetimeChange = formatPriceChange(coin.priceChangeLifetime);
+                        return (
+                          <span className={`flex items-center gap-1 text-sm ${
+                            lifetimeChange.isPositive 
+                              ? 'text-green-400' 
+                              : lifetimeChange.isNegative 
+                                ? 'text-red-400' 
+                                : 'text-neutral-400'
+                          }`}>
+                            {lifetimeChange.formatted}
+                          </span>
+                        );
+                      })()
+                    ) : (
+                      <span className="text-neutral-400 text-sm">TBA</span>
+                    )}
+                  </td>
+                  
+                  {/* Contract Address - hidden on mobile/tablet/small desktop */}
+                  <td className="py-4 px-4 hidden lg:table-cell">
                     <div className="flex items-center gap-2">
                       <code className="text-xs bg-black/30 rounded px-2 py-1 text-neutral-300 max-w-32 truncate">
                         {coin.contractAddress}
