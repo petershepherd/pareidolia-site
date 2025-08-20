@@ -21,6 +21,25 @@
       "priceChangeLifetime": 234.56,
       "lastSyncAt": "2025-01-19T17:30:00.000Z",
       "holders": 1250
+        },
+    {
+      "id": "test-coin",
+      "symbol": "TEST",
+      "name": "Test Coin",
+      "description": "A test coin with negative values to test color coding.",
+      "contractAddress": "AbCdEfGhIjKlMnOpQrStUvWxYz1234567890AbCdEfGh",
+      "chain": "SOL",
+      "createdAt": "2025-01-15T00:00:00.000Z",
+      "dexUrl": "https://example.com/trade/test",
+      "explorerUrl": "https://solscan.io/token/AbCdEfGhIjKlMnOpQrStUvWxYz1234567890AbCdEfGh",
+      "price": 0.00000567,
+      "volume24h": 12000,
+      "liquidity": 50000,
+      "marketCap": 180000,
+      "priceChange24h": -8.43,
+      "priceChangeLifetime": -45.67,
+      "lastSyncAt": "2025-01-19T18:00:00.000Z",
+      "holders": 850
     }
   ],
   "burnEvents": []
