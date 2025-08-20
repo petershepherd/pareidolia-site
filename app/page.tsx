@@ -158,7 +158,7 @@ function CoinListSection({ onMemeClick }: { onMemeClick: (symbol: string) => voi
         <div className="mb-8 text-center">
           <h2 className="text-3xl sm:text-4xl font-bold mb-4">Discover Coins</h2>
           <p className="text-lg text-neutral-300 max-w-2xl mx-auto">
-            Explore the growing ecosystem of Solana meme coins. Find the next gem, 
+            Explore the growing ecosystem of Pareidolia meme coins. Find the next gem, 
             check live metrics, and create memes that matter.
           </p>
         </div>
